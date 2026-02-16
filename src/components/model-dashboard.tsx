@@ -8,6 +8,7 @@ import {
   BarChart3, Calendar, Bell, Crown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { t } from '@/lib/i18n';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
 
@@ -76,8 +77,8 @@ export function ModelDashboard({ isOpen, onClose }: ModelDashboardProps) {
                     <Crown className="w-5 h-5 text-[#0A0A0A]" />
                   </div>
                   <div>
-                    <h1 className="text-xl font-semibold text-[#F5F5F5]">Creator Dashboard</h1>
-                    <p className="text-sm text-[#A0A0A0]">Manage your content and earnings</p>
+                    <h1 className="text-xl font-semibold text-[#F5F5F5]">{t('dashboard.title')}</h1>
+                    <p className="text-sm text-[#A0A0A0]">{t('dashboard.subtitle')}</p>
                   </div>
                 </div>
                 <button
@@ -90,7 +91,7 @@ export function ModelDashboard({ isOpen, onClose }: ModelDashboardProps) {
 
               {/* Navigation Tabs */}
               <div className="flex gap-1 px-6 pb-2">
-                {['Overview', 'Content', 'Messages', 'Settings'].map((tab, i) => (
+                {t('dashboard.tabs').map((tab, i) => (
                   <button
                     key={tab}
                     className={`px-4 py-2 text-sm rounded-lg transition-colors ${
@@ -111,15 +112,15 @@ export function ModelDashboard({ isOpen, onClose }: ModelDashboardProps) {
               <div className="flex flex-wrap gap-3">
                 <Button className="btn-premium btn-shine">
                   <Upload className="w-4 h-4 mr-2" />
-                  Upload Content
+                  {t('dashboard.upload_content')}
                 </Button>
                 <Button variant="outline" className="border-[#333333] text-[#A0A0A0]">
                   <MessageCircle className="w-4 h-4 mr-2" />
-                  Messages (12)
+                  {t('dashboard.messages')} (12)
                 </Button>
                 <Button variant="outline" className="border-[#333333] text-[#A0A0A0]">
                   <Bell className="w-4 h-4 mr-2" />
-                  Notifications
+                  {t('dashboard.notifications')}
                 </Button>
               </div>
 
@@ -127,28 +128,28 @@ export function ModelDashboard({ isOpen, onClose }: ModelDashboardProps) {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <StatCard
                   icon={<Users className="w-5 h-5" />}
-                  label="Subscribers"
+                  label={t('dashboard.subscribers')}
                   value={mockStats.totalSubscribers.toLocaleString()}
                   change={`+${mockStats.newSubscribers} this month`}
                   positive
                 />
                 <StatCard
                   icon={<DollarSign className="w-5 h-5" />}
-                  label="Total Earnings"
+                  label={t('dashboard.total_earnings')}
                   value={formatCurrency(mockStats.totalEarnings)}
                   change={formatCurrency(mockStats.monthlyEarnings) + ' this month'}
                   positive
                 />
                 <StatCard
                   icon={<Eye className="w-5 h-5" />}
-                  label="Total Views"
+                  label={t('dashboard.total_views')}
                   value={mockStats.totalViews.toLocaleString()}
                   change={`+${mockStats.viewsToday.toLocaleString()} today`}
                   positive
                 />
                 <StatCard
                   icon={<Heart className="w-5 h-5" />}
-                  label="Total Likes"
+                  label={t('dashboard.total_likes')}
                   value={mockStats.totalLikes.toLocaleString()}
                   change={`+${mockStats.likesToday} today`}
                   positive
@@ -162,7 +163,7 @@ export function ModelDashboard({ isOpen, onClose }: ModelDashboardProps) {
                   <CardHeader>
                     <CardTitle className="text-[#F5F5F5] flex items-center gap-2">
                       <BarChart3 className="w-5 h-5 text-[#D4AF37]" />
-                      Earnings Overview
+                      {t('dashboard.earnings_overview')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -188,7 +189,7 @@ export function ModelDashboard({ isOpen, onClose }: ModelDashboardProps) {
                   <CardHeader>
                     <CardTitle className="text-[#F5F5F5] flex items-center gap-2">
                       <TrendingUp className="w-5 h-5 text-[#D4AF37]" />
-                      Recent Activity
+                      {t('dashboard.recent_activity')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -225,10 +226,10 @@ export function ModelDashboard({ isOpen, onClose }: ModelDashboardProps) {
                   <CardTitle className="text-[#F5F5F5] flex items-center justify-between">
                     <span className="flex items-center gap-2">
                       <ImageIcon className="w-5 h-5 text-[#D4AF37]" />
-                      Content Overview
+                      {t('dashboard.content_overview')}
                     </span>
                     <Button variant="outline" size="sm" className="border-[#333333] text-[#A0A0A0]">
-                      View All
+                      {t('dashboard.view_all')}
                     </Button>
                   </CardTitle>
                 </CardHeader>
@@ -237,22 +238,22 @@ export function ModelDashboard({ isOpen, onClose }: ModelDashboardProps) {
                     <div className="p-4 bg-[#0A0A0A] rounded-lg text-center">
                       <ImageIcon className="w-6 h-6 mx-auto mb-2 text-[#D4AF37]" />
                       <p className="text-2xl font-bold text-[#F5F5F5]">{mockStats.photosCount}</p>
-                      <p className="text-xs text-[#A0A0A0]">Photos</p>
+                      <p className="text-xs text-[#A0A0A0]">{t('model.photos')}</p>
                     </div>
                     <div className="p-4 bg-[#0A0A0A] rounded-lg text-center">
                       <Video className="w-6 h-6 mx-auto mb-2 text-[#D4AF37]" />
                       <p className="text-2xl font-bold text-[#F5F5F5]">{mockStats.videosCount}</p>
-                      <p className="text-xs text-[#A0A0A0]">Videos</p>
+                      <p className="text-xs text-[#A0A0A0]">{t('model.videos')}</p>
                     </div>
                     <div className="p-4 bg-[#0A0A0A] rounded-lg text-center">
                       <Eye className="w-6 h-6 mx-auto mb-2 text-[#D4AF37]" />
                       <p className="text-2xl font-bold text-[#F5F5F5]">3</p>
-                      <p className="text-xs text-[#A0A0A0]">Pending Review</p>
+                      <p className="text-xs text-[#A0A0A0]">{t('model.pending_review')}</p>
                     </div>
                     <div className="p-4 bg-[#0A0A0A] rounded-lg text-center">
                       <Calendar className="w-6 h-6 mx-auto mb-2 text-[#D4AF37]" />
                       <p className="text-2xl font-bold text-[#F5F5F5]">5</p>
-                      <p className="text-xs text-[#A0A0A0]">Scheduled</p>
+                      <p className="text-xs text-[#A0A0A0]">{t('model.scheduled')}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -263,16 +264,16 @@ export function ModelDashboard({ isOpen, onClose }: ModelDashboardProps) {
                 <CardContent className="p-6">
                   <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                     <div>
-                      <h3 className="text-lg font-medium text-[#F5F5F5] mb-1">Pending Payout</h3>
+                      <h3 className="text-lg font-medium text-[#F5F5F5] mb-1">{t('dashboard.pending_payout')}</h3>
                       <p className="text-3xl font-bold text-[#D4AF37]">
                         {formatCurrency(mockStats.pendingPayout)}
                       </p>
                       <p className="text-sm text-[#A0A0A0] mt-1">
-                        Next payout: July 1, 2025
+                        {t('dashboard.next_payout', { date: 'July 1, 2025' })}
                       </p>
                     </div>
                     <Button className="btn-premium btn-shine">
-                      Request Payout
+                      {t('dashboard.request_payout')}
                     </Button>
                   </div>
                 </CardContent>

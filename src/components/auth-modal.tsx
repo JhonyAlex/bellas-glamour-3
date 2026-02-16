@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { APP_NAME, MINIMUM_AGE } from '@/lib/constants';
+import { t } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
 type AuthMode = 'login' | 'register';
@@ -125,12 +126,12 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                     <Crown className="w-6 h-6 text-[#0A0A0A]" />
                   </div>
                   <h2 className="text-2xl font-serif text-[#F5F5F5]">
-                    {mode === 'login' ? 'Welcome Back' : 'Join ' + APP_NAME}
+                    {mode === 'login' ? t('auth.welcome_back') : t('auth.join', { app: APP_NAME })}
                   </h2>
                   <p className="text-[#A0A0A0] text-sm mt-1">
                     {mode === 'login' 
-                      ? 'Sign in to your account' 
-                      : 'Create your account to get started'}
+                      ? t('auth.sign_in_info') 
+                      : t('auth.register_info')}
                   </p>
                 </div>
 
@@ -145,18 +146,18 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                         : 'text-[#A0A0A0] hover:text-[#F5F5F5]'
                     )}
                   >
-                    Sign In
+                    {t('auth.sign_in_btn')}
                   </button>
                   <button
                     onClick={() => setMode('register')}
                     className={cn(
                       'flex-1 py-2 rounded-md text-sm font-medium transition-colors',
                       mode === 'register' 
-                        ? 'bg-[#D4AF37] text-[#0A0A0A]' 
-                        : 'text-[#A0A0A0] hover:text-[#F5F5F5]'
+                          ? 'bg-[#D4AF37] text-[#0A0A0A]' 
+                          : 'text-[#A0A0A0] hover:text-[#F5F5F5]'
                     )}
                   >
-                    Register
+                      {t('auth.register_btn')}
                   </button>
                 </div>
               </div>
@@ -165,7 +166,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
               <form onSubmit={handleSubmit} className="p-6 pt-0 space-y-4">
                 {mode === 'register' && (
                   <div className="space-y-1">
-                    <Label htmlFor="name" className="text-[#A0A0A0]">Name</Label>
+                    <Label htmlFor="name" className="text-[#A0A0A0]">{t('auth.name')}</Label>
                     <div className="relative">
                       <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#666666]" />
                       <Input
@@ -174,7 +175,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                         value={formData.name}
                         onChange={e => updateFormData('name', e.target.value)}
                         className="pl-10 bg-[#0A0A0A] border-[#333333] text-[#F5F5F5] focus:border-[#D4AF37]"
-                        placeholder="Your name"
+                        placeholder={t('auth.your_name')}
                       />
                     </div>
                     {errors.name && <p className="text-xs text-[#8B0000]">{errors.name}</p>}
@@ -182,7 +183,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                 )}
 
                 <div className="space-y-1">
-                  <Label htmlFor="email" className="text-[#A0A0A0]">Email</Label>
+                  <Label htmlFor="email" className="text-[#A0A0A0]">{t('auth.email')}</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#666666]" />
                     <Input
@@ -191,14 +192,14 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                       value={formData.email}
                       onChange={e => updateFormData('email', e.target.value)}
                       className="pl-10 bg-[#0A0A0A] border-[#333333] text-[#F5F5F5] focus:border-[#D4AF37]"
-                      placeholder="you@example.com"
+                      placeholder={t('auth.placeholder_email')}
                     />
                   </div>
                   {errors.email && <p className="text-xs text-[#8B0000]">{errors.email}</p>}
                 </div>
 
                 <div className="space-y-1">
-                  <Label htmlFor="password" className="text-[#A0A0A0]">Password</Label>
+                  <Label htmlFor="password" className="text-[#A0A0A0]">{t('auth.password')}</Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#666666]" />
                     <Input
@@ -207,7 +208,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                       value={formData.password}
                       onChange={e => updateFormData('password', e.target.value)}
                       className="pl-10 pr-10 bg-[#0A0A0A] border-[#333333] text-[#F5F5F5] focus:border-[#D4AF37]"
-                      placeholder="••••••••"
+                      placeholder={t('auth.password_placeholder')}
                     />
                     <button
                       type="button"
@@ -223,7 +224,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                 {mode === 'register' && (
                   <>
                     <div className="space-y-1">
-                      <Label htmlFor="confirmPassword" className="text-[#A0A0A0]">Confirm Password</Label>
+                      <Label htmlFor="confirmPassword" className="text-[#A0A0A0]">{t('auth.confirm_password')}</Label>
                       <div className="relative">
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#666666]" />
                         <Input
@@ -247,7 +248,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                           className="border-[#333333] data-[state=checked]:bg-[#D4AF37] data-[state=checked]:border-[#D4AF37]"
                         />
                         <Label htmlFor="ageConfirmation" className="text-sm text-[#A0A0A0]">
-                          I confirm that I am at least {MINIMUM_AGE} years old
+                          {t('auth.age_confirm', { age: MINIMUM_AGE })}
                         </Label>
                       </div>
                       {errors.ageConfirmation && <p className="text-xs text-[#8B0000]">{errors.ageConfirmation}</p>}
@@ -260,10 +261,10 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                           className="border-[#333333] data-[state=checked]:bg-[#D4AF37] data-[state=checked]:border-[#D4AF37]"
                         />
                         <Label htmlFor="acceptTerms" className="text-sm text-[#A0A0A0]">
-                          I agree to the{' '}
-                          <a href="#terms" className="text-[#D4AF37] hover:underline">Terms of Service</a>
-                          {' '}and{' '}
-                          <a href="#privacy" className="text-[#D4AF37] hover:underline">Privacy Policy</a>
+                          {t('auth.agree_to')}{' '}
+                          <a href="#terms" className="text-[#D4AF37] hover:underline">{t('auth.terms')}</a>
+                          {' '}y{' '}
+                          <a href="#privacy" className="text-[#D4AF37] hover:underline">{t('auth.privacy')}</a>
                         </Label>
                       </div>
                       {errors.acceptTerms && <p className="text-xs text-[#8B0000]">{errors.acceptTerms}</p>}
@@ -275,10 +276,10 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                   <div className="flex items-center justify-between">
                     <label className="flex items-center gap-2">
                       <Checkbox className="border-[#333333] data-[state=checked]:bg-[#D4AF37] data-[state=checked]:border-[#D4AF37]" />
-                      <span className="text-sm text-[#A0A0A0]">Remember me</span>
+                      <span className="text-sm text-[#A0A0A0]">{t('auth.remember_me')}</span>
                     </label>
                     <a href="#forgot" className="text-sm text-[#D4AF37] hover:underline">
-                      Forgot password?
+                      {t('auth.forgot_password')}
                     </a>
                   </div>
                 )}
@@ -291,9 +292,9 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                   {isLoading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : mode === 'login' ? (
-                    'Sign In'
+                    t('auth.sign_in_btn')
                   ) : (
-                    'Create Account'
+                    t('auth.create_account')
                   )}
                 </Button>
               </form>
@@ -303,16 +304,16 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                 <p className="text-center text-sm text-[#A0A0A0]">
                   {mode === 'login' ? (
                     <>
-                      Don't have an account?{' '}
+                      {t('auth.dont_have_account')}{' '}
                       <button onClick={toggleMode} className="text-[#D4AF37] hover:underline">
-                        Sign up
+                        {t('auth.sign_up')}
                       </button>
                     </>
                   ) : (
                     <>
-                      Already have an account?{' '}
+                      {t('auth.already_have_account')}{' '}
                       <button onClick={toggleMode} className="text-[#D4AF37] hover:underline">
-                        Sign in
+                        {t('auth.sign_in_short')}
                       </button>
                     </>
                   )}

@@ -4,6 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Star, Eye, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { t } from '@/lib/i18n';
 import { Profile } from '@/types';
 import { formatCurrency, getPlaceholderImage } from '@/lib/utils';
 import { cn } from '@/lib/utils';
@@ -40,9 +41,9 @@ export function ModelCard({ profile, index = 0, onClick }: ModelCardProps) {
         {/* Featured Badge */}
         {profile.isFeatured && (
           <div className="absolute top-3 left-3 z-10">
-            <div className="px-2 py-1 bg-[#D4AF37] text-[#0A0A0A] text-xs font-medium rounded-full flex items-center gap-1">
+              <div className="px-2 py-1 bg-[#D4AF37] text-[#0A0A0A] text-xs font-medium rounded-full flex items-center gap-1">
               <Star className="w-3 h-3" />
-              Featured
+              {t('model.featured')}
             </div>
           </div>
         )}
@@ -102,7 +103,7 @@ export function ModelCard({ profile, index = 0, onClick }: ModelCardProps) {
                 // Handle subscription
               }}
             >
-              Subscribe {formatCurrency(profile.subscriptionPrice || 9.99)}/mo
+              {t('model.subscribe', { price: formatCurrency(profile.subscriptionPrice || 9.99) })}
             </Button>
           </motion.div>
         </div>
@@ -169,7 +170,7 @@ export function ModelCardFeatured({ profile, index = 0, onClick }: ModelCardProp
       <div className="absolute top-4 left-4 z-20">
         <div className="px-3 py-1.5 bg-gradient-to-r from-[#D4AF37] to-[#F5D76E] text-[#0A0A0A] text-sm font-semibold rounded-full flex items-center gap-1.5 shadow-gold">
           <Star className="w-4 h-4 fill-current" />
-          Featured Model
+          {t('model.featured_model')}
         </div>
       </div>
 
@@ -198,16 +199,16 @@ export function ModelCardFeatured({ profile, index = 0, onClick }: ModelCardProp
 
         <div className="flex items-center justify-between">
           <div className="text-[#D4AF37] font-semibold">
-            {formatCurrency(profile.subscriptionPrice || 9.99)}/month
-          </div>
-          <Button
-            className="btn-premium btn-shine"
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-          >
-            Subscribe
-          </Button>
+              {formatCurrency(profile.subscriptionPrice || 9.99)}/month
+            </div>
+            <Button
+              className="btn-premium btn-shine"
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            >
+              {t('model.subscribe', { price: formatCurrency(profile.subscriptionPrice || 9.99) })}
+            </Button>
         </div>
       </div>
 

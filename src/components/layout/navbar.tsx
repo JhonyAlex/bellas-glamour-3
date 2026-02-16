@@ -5,7 +5,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, User, LogIn, Crown, Settings, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { APP_NAME, NAV_LINKS } from '@/lib/constants';
+import { t } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
+
+const navLabelMap: Record<string, string> = {
+  Home: t('nav.home'),
+  Models: t('nav.models'),
+  Featured: t('nav.featured'),
+  Categories: t('nav.categories'),
+};
 
 interface NavbarProps {
   onAuthClick: (mode: 'login' | 'register') => void;
@@ -84,7 +92,7 @@ export function Navbar({ onAuthClick, onModelDashboardClick, onAdminPanelClick }
                 transition={{ delay: index * 0.1 }}
                 className="nav-link text-[#F5F5F5] hover:text-[#D4AF37] transition-colors text-sm font-medium"
               >
-                {link.label}
+                {navLabelMap[link.label] || link.label}
               </motion.a>
             ))}
           </div>
@@ -97,7 +105,7 @@ export function Navbar({ onAuthClick, onModelDashboardClick, onAdminPanelClick }
               className="text-[#A0A0A0] hover:text-[#D4AF37] hover:bg-transparent text-sm"
             >
               <Settings className="w-4 h-4 mr-2" />
-              Creator
+              {t('navbar.creator')}
             </Button>
             <Button
               variant="ghost"
@@ -105,7 +113,7 @@ export function Navbar({ onAuthClick, onModelDashboardClick, onAdminPanelClick }
               className="text-[#A0A0A0] hover:text-[#8B0000] hover:bg-transparent text-sm"
             >
               <Shield className="w-4 h-4 mr-2" />
-              Admin
+              {t('navbar.admin')}
             </Button>
             <Button
               variant="ghost"
@@ -113,14 +121,14 @@ export function Navbar({ onAuthClick, onModelDashboardClick, onAdminPanelClick }
               className="text-[#F5F5F5] hover:text-[#D4AF37] hover:bg-transparent"
             >
               <LogIn className="w-4 h-4 mr-2" />
-              Sign In
+              {t('navbar.sign_in')}
             </Button>
             <Button
               onClick={() => onAuthClick('register')}
               className="btn-premium btn-shine"
             >
               <User className="w-4 h-4 mr-2" />
-              Join Now
+              {t('navbar.join_now')}
             </Button>
           </div>
 
@@ -149,14 +157,14 @@ export function Navbar({ onAuthClick, onModelDashboardClick, onAdminPanelClick }
             className="md:hidden bg-[#0A0A0A]/98 backdrop-blur-md border-b border-[#333333]"
           >
             <div className="px-4 py-6 space-y-4">
-              {NAV_LINKS.map((link) => (
+                  {NAV_LINKS.map((link) => (
                 <a
                   key={link.href}
                   href={link.href}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="block py-2 text-[#F5F5F5] hover:text-[#D4AF37] transition-colors"
                 >
-                  {link.label}
+                  {navLabelMap[link.label] || link.label}
                 </a>
               ))}
               
@@ -170,7 +178,7 @@ export function Navbar({ onAuthClick, onModelDashboardClick, onAdminPanelClick }
                   className="w-full border-[#333333] text-[#F5F5F5] hover:border-[#D4AF37]"
                 >
                   <LogIn className="w-4 h-4 mr-2" />
-                  Sign In
+                  {t('navbar.sign_in')}
                 </Button>
                 <Button
                   onClick={() => {
@@ -180,7 +188,7 @@ export function Navbar({ onAuthClick, onModelDashboardClick, onAdminPanelClick }
                   className="w-full btn-premium btn-shine"
                 >
                   <User className="w-4 h-4 mr-2" />
-                  Join Now
+                  {t('navbar.join_now')}
                 </Button>
               </div>
             </div>

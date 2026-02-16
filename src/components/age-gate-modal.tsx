@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { useAgeVerification } from '@/components/providers/age-verification-provider';
 import { APP_NAME, APP_TAGLINE, MINIMUM_AGE } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+import { t } from '@/lib/i18n';
 
 export function AgeGateModal() {
   const { showAgeGate, verifyAge } = useAgeVerification();
@@ -20,7 +21,7 @@ export function AgeGateModal() {
     setError('');
 
     if (!birthDate) {
-      setError('Please enter your date of birth');
+      setError(t('age_gate.error_enter_dob'));
       setIsSubmitting(false);
       return;
     }
@@ -30,14 +31,14 @@ export function AgeGateModal() {
     
     // Check if date is valid
     if (isNaN(date.getTime())) {
-      setError('Please enter a valid date of birth');
+      setError(t('age_gate.error_valid_dob'));
       setIsSubmitting(false);
       return;
     }
 
     // Check if date is in the future
     if (date > today) {
-      setError('Date of birth cannot be in the future');
+      setError(t('age_gate.error_future_dob'));
       setIsSubmitting(false);
       return;
     }
@@ -46,7 +47,7 @@ export function AgeGateModal() {
     const isOverAge = verifyAge(date);
     
     if (!isOverAge) {
-      setError(`You must be at least ${MINIMUM_AGE} years old to access this site`);
+      setError(t('age_gate.error_under_age', { age: MINIMUM_AGE }));
     }
     
     setIsSubmitting(false);
@@ -92,14 +93,14 @@ export function AgeGateModal() {
               {/* Age Verification Notice */}
               <div className="flex items-center justify-center gap-2 mb-6 text-[#A0A0A0]">
                 <Shield className="w-4 h-4 text-[#D4AF37]" />
-                <span className="text-sm">Age Verification Required</span>
+                <span className="text-sm">{t('age_gate.age_verification_req')}</span>
               </div>
 
               {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <label className="block text-sm text-[#F5F5F5] mb-2">
-                    Enter your date of birth
+                    {t('age_gate.enter_dob')}
                   </label>
                   <div className="relative">
                     <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#D4AF37]" />
@@ -139,10 +140,10 @@ export function AgeGateModal() {
                           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                           className="w-4 h-4 border-2 border-[#0A0A0A] border-t-transparent rounded-full"
                         />
-                        Verifying...
+                        {t('age_gate.verifying')}
                       </span>
                     ) : (
-                      `I am ${MINIMUM_AGE} or older - Enter`
+                      t('age_gate.enter_button', { age: MINIMUM_AGE })
                     )}
                   </Button>
                   
@@ -153,7 +154,7 @@ export function AgeGateModal() {
                     className="w-full h-12 border-[#333333] text-[#A0A0A0] hover:bg-[#1A1A1A] hover:text-[#F5F5F5] hover:border-[#D4AF37]/50 transition-colors"
                   >
                     <LogOut className="w-4 h-4 mr-2" />
-                    I am under {MINIMUM_AGE} - Exit
+                    {t('age_gate.exit_button', { age: MINIMUM_AGE })}
                   </Button>
                 </div>
               </form>
@@ -161,18 +162,17 @@ export function AgeGateModal() {
               {/* Legal Text */}
               <div className="mt-6 pt-6 border-t border-[#333333]">
                 <p className="text-xs text-[#A0A0A0] text-center leading-relaxed">
-                  By entering this site, you confirm that you are at least {MINIMUM_AGE} years old 
-                  and agree to our{' '}
-                  <a href="#terms" className="text-[#D4AF37] hover:underline">Terms of Service</a>
-                  {' '}and{' '}
-                  <a href="#privacy" className="text-[#D4AF37] hover:underline">Privacy Policy</a>.
+                  {t('age_gate.legal_notice', { age: MINIMUM_AGE })}{' '}
+                  <a href="#terms" className="text-[#D4AF37] hover:underline">{t('auth.terms')}</a>
+                  {' '}y{' '}
+                  <a href="#privacy" className="text-[#D4AF37] hover:underline">{t('auth.privacy')}</a>.
                 </p>
               </div>
 
               {/* 2257 Compliance Badge */}
               <div className="mt-4 flex items-center justify-center gap-2 text-xs text-[#A0A0A0]">
                 <Shield className="w-3 h-3" />
-                <span>18 U.S.C. 2257 Compliant</span>
+                <span>{t('age_gate.compliance_2257_badge')}</span>
               </div>
             </div>
           </motion.div>

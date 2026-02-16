@@ -19,6 +19,7 @@ import { AdminPanel } from '@/components/admin-panel';
 
 // Data & Constants
 import { APP_NAME, APP_TAGLINE } from '@/lib/constants';
+import t from '@/lib/i18n';
 import { getPlaceholderImage } from '@/lib/utils';
 import { ModelFilters as ModelFiltersType } from '@/types';
 
@@ -299,14 +300,14 @@ function BellasGlamourContent() {
             transition={{ duration: 0.8 }}
           >
             {/* Premium Badge */}
-            <motion.div
+              <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.2 }}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#1A1A1A] border border-[#D4AF37]/30 mb-6"
             >
               <Crown className="w-4 h-4 text-[#D4AF37]" />
-              <span className="text-sm text-[#D4AF37]">Premium Exclusive Content</span>
+              <span className="text-sm text-[#D4AF37]">{t('page.premium_badge')}</span>
             </motion.div>
 
             {/* Main Heading */}
@@ -315,7 +316,7 @@ function BellasGlamourContent() {
             </h1>
             
             <p className="text-responsive-xl text-[#A0A0A0] mb-8 max-w-2xl mx-auto">
-              {APP_TAGLINE}. Discover exclusive content from the world's most stunning models.
+              {APP_TAGLINE}. {t('page.featured_desc')}
             </p>
 
             {/* CTA Buttons */}
@@ -327,7 +328,7 @@ function BellasGlamourContent() {
                 className="btn-premium btn-shine px-8 py-4 text-lg flex items-center gap-2"
               >
                 <Sparkles className="w-5 h-5" />
-                Start Exploring
+                {t('page.hero_cta_start')}
                 <ArrowRight className="w-5 h-5" />
               </motion.button>
               
@@ -337,7 +338,7 @@ function BellasGlamourContent() {
                 whileTap={{ scale: 0.98 }}
                 className="px-8 py-4 text-lg border border-[#D4AF37]/50 rounded-lg text-[#D4AF37] hover:bg-[#D4AF37]/10 transition-colors"
               >
-                Browse Models
+                {t('page.hero_cta_browse')}
               </motion.a>
             </div>
 
@@ -350,15 +351,15 @@ function BellasGlamourContent() {
             >
               <div className="flex items-center gap-2">
                 <Users className="w-5 h-5 text-[#D4AF37]" />
-                <span className="text-[#F5F5F5]">50K+ Active Subscribers</span>
+                <span className="text-[#F5F5F5]">{t('page.stat_active_subscribers')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Star className="w-5 h-5 text-[#D4AF37]" />
-                <span className="text-[#F5F5F5]">500+ Verified Models</span>
+                <span className="text-[#F5F5F5]">{t('page.stat_verified_models')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Shield className="w-5 h-5 text-[#D4AF37]" />
-                <span className="text-[#F5F5F5]">100% Secure & Private</span>
+                <span className="text-[#F5F5F5]">{t('page.stat_secure')}</span>
               </div>
             </motion.div>
           </motion.div>
@@ -396,13 +397,13 @@ function BellasGlamourContent() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#D4AF37]/10 border border-[#D4AF37]/20 mb-4">
               <TrendingUp className="w-4 h-4 text-[#D4AF37]" />
-              <span className="text-sm text-[#D4AF37]">Trending This Week</span>
+              <span className="text-sm text-[#D4AF37]">{t('page.trending_this_week')}</span>
             </div>
             <h2 className="text-responsive-2xl font-serif text-[#F5F5F5] mb-4">
-              Featured <span className="text-gradient-gold">Models</span>
+              {t('page.featured_models')}
             </h2>
             <p className="text-[#A0A0A0] max-w-2xl mx-auto">
-              Discover our most popular creators bringing you exclusive content
+              {t('page.featured_desc')}
             </p>
           </motion.div>
 
@@ -429,10 +430,10 @@ function BellasGlamourContent() {
             className="text-center mb-12"
           >
             <h2 className="text-responsive-2xl font-serif text-[#F5F5F5] mb-4">
-              Explore All <span className="text-gradient-gold">Models</span>
+              {t('page.explore_all_models')}
             </h2>
             <p className="text-[#A0A0A0] max-w-2xl mx-auto">
-              Browse our complete collection of verified creators
+              {t('page.all_models_desc')}
             </p>
           </motion.div>
 
@@ -440,7 +441,7 @@ function BellasGlamourContent() {
             {/* Filters Sidebar */}
             <div className="lg:col-span-1">
               <div className="sticky top-24 bg-[#1A1A1A] rounded-xl border border-[#333333] p-4">
-                <h3 className="text-lg font-medium text-[#F5F5F5] mb-4">Filters</h3>
+                <h3 className="text-lg font-medium text-[#F5F5F5] mb-4">{t('page.filters')}</h3>
                 <ModelFilters
                   filters={filters}
                   onFiltersChange={setFilters}
@@ -454,7 +455,7 @@ function BellasGlamourContent() {
             <div className="lg:col-span-3">
               <div className="flex items-center justify-between mb-6">
                 <p className="text-[#A0A0A0]">
-                  Showing {filteredModels.length} models
+                  {t('page.showing_models', { count: filteredModels.length })}
                 </p>
               </div>
 
@@ -471,7 +472,7 @@ function BellasGlamourContent() {
 
               {filteredModels.length === 0 && (
                 <div className="text-center py-12">
-                  <p className="text-[#A0A0A0]">No models match your filters</p>
+                  <p className="text-[#A0A0A0]">{t('page.no_models')}</p>
                 </div>
               )}
             </div>
@@ -489,11 +490,10 @@ function BellasGlamourContent() {
           >
             <Crown className="w-12 h-12 text-[#D4AF37] mx-auto mb-6" />
             <h2 className="text-responsive-2xl font-serif text-[#F5F5F5] mb-4">
-              Ready to Join?
+              {t('page.cta_ready_join')}
             </h2>
             <p className="text-[#A0A0A0] mb-8 max-w-2xl mx-auto">
-              Create your free account and start exploring exclusive content from 
-              verified models and creators worldwide.
+              {t('page.cta_create_account_desc')}
             </p>
             <motion.button
               whileHover={{ scale: 1.02 }}
@@ -501,7 +501,7 @@ function BellasGlamourContent() {
               onClick={() => handleAuthClick('register')}
               className="btn-premium btn-shine px-10 py-4 text-lg"
             >
-              Create Free Account
+              {t('page.cta_create_account')}
             </motion.button>
           </motion.div>
         </div>

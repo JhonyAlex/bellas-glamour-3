@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { APP_NAME } from '@/lib/constants';
 import { formatCurrency, getPlaceholderImage } from '@/lib/utils';
 import { cn } from '@/lib/utils';
+import { t } from '@/lib/i18n';
 
 interface ModelProfileModalProps {
   isOpen: boolean;
@@ -126,15 +127,15 @@ export function ModelProfileModal({ isOpen, onClose, model }: ModelProfileModalP
                     <div className="flex items-center gap-6 mb-4 text-sm">
                       <div className="flex items-center gap-1 text-[#A0A0A0]">
                         <Eye className="w-4 h-4" />
-                        <span>{model.viewsCount?.toLocaleString() || '0'} views</span>
+                        <span>{model.viewsCount?.toLocaleString() || '0'} {t('model.views')}</span>
                       </div>
                       <div className="flex items-center gap-1 text-[#A0A0A0]">
                         <Heart className="w-4 h-4" />
-                        <span>{model.likesCount?.toLocaleString() || '0'} likes</span>
+                        <span>{model.likesCount?.toLocaleString() || '0'} {t('model.likes')}</span>
                       </div>
                       <div className="flex items-center gap-1 text-[#A0A0A0]">
                         <Crown className="w-4 h-4 text-[#D4AF37]" />
-                        <span>{model.subscribersCount?.toLocaleString() || '0'} subscribers</span>
+                        <span>{model.subscribersCount?.toLocaleString() || '0'} {t('model.subscribers')}</span>
                       </div>
                     </div>
 
@@ -146,12 +147,12 @@ export function ModelProfileModal({ isOpen, onClose, model }: ModelProfileModalP
                           className="btn-premium btn-shine"
                         >
                           <Crown className="w-4 h-4 mr-2" />
-                          Subscribe {formatCurrency(model.subscriptionPrice || 9.99)}/mo
+                          {t('model.subscribe', { price: formatCurrency(model.subscriptionPrice || 9.99) })}
                         </Button>
                       ) : (
                         <Button className="bg-green-600 hover:bg-green-700 text-white">
                           <Crown className="w-4 h-4 mr-2" />
-                          Subscribed
+                          {t('model.subscribed')}
                         </Button>
                       )}
                       <Button
@@ -159,7 +160,7 @@ export function ModelProfileModal({ isOpen, onClose, model }: ModelProfileModalP
                         className="border-[#333333] text-[#F5F5F5] hover:border-[#D4AF37]"
                       >
                         <MessageCircle className="w-4 h-4 mr-2" />
-                        Message
+                        {t('profile.message')}
                       </Button>
                       <Button
                         variant="outline"
@@ -183,25 +184,25 @@ export function ModelProfileModal({ isOpen, onClose, model }: ModelProfileModalP
                 <div className="mt-6 flex flex-wrap gap-4">
                   {model.height && (
                     <div className="px-3 py-1.5 bg-[#1A1A1A] rounded-full text-sm">
-                      <span className="text-[#666666]">Height:</span>{' '}
+                      <span className="text-[#666666]">{t('profile.height')}</span>{' '}
                       <span className="text-[#F5F5F5]">{model.height}</span>
                     </div>
                   )}
                   {model.eyeColor && (
                     <div className="px-3 py-1.5 bg-[#1A1A1A] rounded-full text-sm">
-                      <span className="text-[#666666]">Eyes:</span>{' '}
+                      <span className="text-[#666666]">{t('profile.eyes')}</span>{' '}
                       <span className="text-[#F5F5F5]">{model.eyeColor}</span>
                     </div>
                   )}
                   {model.hairColor && (
                     <div className="px-3 py-1.5 bg-[#1A1A1A] rounded-full text-sm">
-                      <span className="text-[#666666]">Hair:</span>{' '}
+                      <span className="text-[#666666]">{t('profile.hair')}</span>{' '}
                       <span className="text-[#F5F5F5]">{model.hairColor}</span>
                     </div>
                   )}
                   {model.ethnicity && (
                     <div className="px-3 py-1.5 bg-[#1A1A1A] rounded-full text-sm">
-                      <span className="text-[#666666]">Ethnicity:</span>{' '}
+                      <span className="text-[#666666]">{t('profile.ethnicity')}</span>{' '}
                       <span className="text-[#F5F5F5]">{model.ethnicity}</span>
                     </div>
                   )}
@@ -215,13 +216,13 @@ export function ModelProfileModal({ isOpen, onClose, model }: ModelProfileModalP
                         value="media"
                         className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#D4AF37] data-[state=active]:bg-transparent px-4 py-3"
                       >
-                        Media
+                        {t('profile.media_tab')}
                       </TabsTrigger>
                       <TabsTrigger
                         value="about"
                         className="rounded-none border-b-2 border-transparent data-[state=active]:border-[#D4AF37] data-[state=active]:bg-transparent px-4 py-3"
                       >
-                        About
+                        {t('profile.about_tab')}
                       </TabsTrigger>
                     </TabsList>
 
@@ -229,8 +230,8 @@ export function ModelProfileModal({ isOpen, onClose, model }: ModelProfileModalP
                       {/* Free Content Section */}
                       <div className="mb-8">
                         <h3 className="text-lg font-medium text-[#F5F5F5] mb-4">
-                          Free Preview
-                        </h3>
+                            {t('profile.free_preview')}
+                          </h3>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                           {mockMedia.slice(0, 4).map((media, index) => (
                             <motion.div
@@ -262,11 +263,11 @@ export function ModelProfileModal({ isOpen, onClose, model }: ModelProfileModalP
                       <div className="relative">
                         <div className="flex items-center justify-between mb-4">
                           <h3 className="text-lg font-medium text-[#F5F5F5] flex items-center gap-2">
-                            <Lock className="w-4 h-4 text-[#D4AF37]" />
-                            Premium Content
-                          </h3>
+                              <Lock className="w-4 h-4 text-[#D4AF37]" />
+                              {t('profile.premium_content')}
+                            </h3>
                           <span className="text-sm text-[#A0A0A0]">
-                            {mockMedia.length - 4} exclusive photos & videos
+                            {t('profile.exclusive_count', { count: mockMedia.length - 4 })}
                           </span>
                         </div>
 
@@ -304,17 +305,17 @@ export function ModelProfileModal({ isOpen, onClose, model }: ModelProfileModalP
                             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                               <div>
                                 <h4 className="text-lg font-medium text-[#F5F5F5] mb-1">
-                                  Unlock Exclusive Content
+                                  {t('profile.unlock_exclusive')}
                                 </h4>
                                 <p className="text-[#A0A0A0] text-sm">
-                                  Subscribe to access all photos, videos, and live streams
+                                  {t('profile.subscribe_to_access')}
                                 </p>
                               </div>
                               <Button
                                 onClick={() => setIsSubscribed(true)}
                                 className="btn-premium btn-shine whitespace-nowrap"
                               >
-                                Subscribe {formatCurrency(model.subscriptionPrice || 9.99)}/mo
+                                {t('model.subscribe', { price: formatCurrency(model.subscriptionPrice || 9.99) })}
                               </Button>
                             </div>
                           </div>
@@ -324,14 +325,14 @@ export function ModelProfileModal({ isOpen, onClose, model }: ModelProfileModalP
 
                     <TabsContent value="about" className="mt-6">
                       <div className="prose prose-invert max-w-none">
-                        <h3 className="text-lg font-medium text-[#F5F5F5] mb-4">About Me</h3>
+                        <h3 className="text-lg font-medium text-[#F5F5F5] mb-4">{t('profile.about_me')}</h3>
                         <p className="text-[#A0A0A0]">
-                          {model.bio || 'No bio available yet.'}
+                          {model.bio || t('profile.no_bio')}
                         </p>
 
                         {model.measurements && (
                           <>
-                            <h4 className="text-md font-medium text-[#F5F5F5] mt-6 mb-2">Measurements</h4>
+                            <h4 className="text-md font-medium text-[#F5F5F5] mt-6 mb-2">{t('profile.measurements')}</h4>
                             <p className="text-[#A0A0A0]">{model.measurements}</p>
                           </>
                         )}

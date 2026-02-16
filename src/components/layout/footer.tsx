@@ -4,15 +4,16 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Crown, Mail, Shield, FileText, Scale, AlertCircle } from 'lucide-react';
 import { APP_NAME, LEGAL_PAGES } from '@/lib/constants';
+import { t } from '@/lib/i18n';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
 
   const legalLinks = [
-    { href: `#${LEGAL_PAGES.TERMS}`, label: 'Terms of Service', icon: FileText },
-    { href: `#${LEGAL_PAGES.PRIVACY}`, label: 'Privacy Policy', icon: Shield },
-    { href: `#${LEGAL_PAGES.DMCA}`, label: 'DMCA Policy', icon: AlertCircle },
-    { href: `#${LEGAL_PAGES.COMPLIANCE_2257}`, label: '2257 Compliance', icon: Scale },
+    { href: `#${LEGAL_PAGES.TERMS}`, label: t('legal.terms'), icon: FileText },
+    { href: `#${LEGAL_PAGES.PRIVACY}`, label: t('legal.privacy'), icon: Shield },
+    { href: `#${LEGAL_PAGES.DMCA}`, label: t('legal.dmca'), icon: AlertCircle },
+    { href: `#${LEGAL_PAGES.COMPLIANCE_2257}`, label: t('admin.compliance.title'), icon: Scale },
   ];
 
   return (
@@ -44,7 +45,7 @@ export function Footer() {
 
           {/* Legal Links */}
           <div>
-            <h4 className="text-[#F5F5F5] font-medium mb-4">Legal</h4>
+            <h4 className="text-[#F5F5F5] font-medium mb-4">{t('footer.legal')}</h4>
             <ul className="space-y-3">
               {legalLinks.map((link) => (
                 <li key={link.href}>
@@ -62,23 +63,23 @@ export function Footer() {
 
           {/* Support */}
           <div>
-            <h4 className="text-[#F5F5F5] font-medium mb-4">Support</h4>
+            <h4 className="text-[#F5F5F5] font-medium mb-4">{t('footer.support')}</h4>
             <ul className="space-y-3">
               <li>
-                <a
-                  href="mailto:support@bellasglamour.com"
-                  className="text-[#A0A0A0] text-sm hover:text-[#D4AF37] transition-colors flex items-center gap-2"
-                >
-                  <Mail className="w-3 h-3" />
-                  Contact Support
-                </a>
+                  <a
+                    href="mailto:support@bellasglamour.com"
+                    className="text-[#A0A0A0] text-sm hover:text-[#D4AF37] transition-colors flex items-center gap-2"
+                  >
+                    <Mail className="w-3 h-3" />
+                    {t('footer.contact_support')}
+                  </a>
               </li>
               <li>
                 <a
                   href="#faq"
                   className="text-[#A0A0A0] text-sm hover:text-[#D4AF37] transition-colors"
                 >
-                  FAQ
+                  {t('footer.faq')}
                 </a>
               </li>
               <li>
@@ -86,7 +87,7 @@ export function Footer() {
                   href="#help"
                   className="text-[#A0A0A0] text-sm hover:text-[#D4AF37] transition-colors"
                 >
-                  Help Center
+                  {t('footer.help_center')}
                 </a>
               </li>
             </ul>
@@ -97,13 +98,12 @@ export function Footer() {
         <div className="border-t border-[#333333] pt-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-[#A0A0A0] text-xs text-center md:text-left">
-              © {currentYear} {APP_NAME}. All rights reserved. All models were at least 18 years old 
-              at the time of depiction.
+              © {currentYear} {APP_NAME}. {t('footer.all_rights')} {t('footer.all_models_18')}
             </p>
             <div className="flex items-center gap-4 text-xs text-[#A0A0A0]">
-              <span className="flex items-center gap-1">
+                <span className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                All systems operational
+                {t('footer.systems_operational')}
               </span>
             </div>
           </div>
@@ -112,7 +112,7 @@ export function Footer() {
         {/* DMCA Agent Info */}
         <div className="mt-8 pt-8 border-t border-[#333333]/50">
           <p className="text-[#666666] text-xs text-center">
-            DMCA Agent: dmca@bellasglamour.com | Custodian of Records: records@bellasglamour.com
+            {t('footer.dmca_agent')}
           </p>
         </div>
       </div>

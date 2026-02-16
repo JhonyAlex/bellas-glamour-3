@@ -6,8 +6,8 @@
 
 // Application Info
 export const APP_NAME = 'Bellas Glamour';
-export const APP_TAGLINE = 'Elegance Meets Desire';
-export const APP_DESCRIPTION = 'Premium adult content platform featuring exclusive models and creators';
+export const APP_TAGLINE = 'La elegancia se encuentra con el deseo';
+export const APP_DESCRIPTION = 'Plataforma premium de contenido para adultos con modelos y creadores exclusivos';
 export const APP_VERSION = '1.0.0';
 
 // Legal Requirements

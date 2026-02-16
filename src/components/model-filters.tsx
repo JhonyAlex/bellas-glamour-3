@@ -4,6 +4,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Search, SlidersHorizontal, X, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { t } from '@/lib/i18n';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -43,7 +44,7 @@ export function ModelFilters({ filters, onFiltersChange, isOpen, onToggle }: Mod
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#666666]" />
         <Input
           type="text"
-          placeholder="Search models..."
+          placeholder={t('filters.search_placeholder')}
           value={filters.search || ''}
           onChange={e => updateFilter('search', e.target.value)}
           className="pl-10 bg-[#1A1A1A] border-[#333333] text-[#F5F5F5] focus:border-[#D4AF37]"
@@ -57,10 +58,10 @@ export function ModelFilters({ filters, onFiltersChange, isOpen, onToggle }: Mod
         className="w-full border-[#333333] text-[#A0A0A0] hover:bg-[#1A1A1A] hover:text-[#F5F5F5] hover:border-[#D4AF37]/50"
       >
         <SlidersHorizontal className="w-4 h-4 mr-2" />
-        Filters
+        {t('filters.filters')}
         {hasActiveFilters && (
           <span className="ml-2 px-1.5 py-0.5 bg-[#D4AF37] text-[#0A0A0A] text-xs rounded-full">
-            Active
+            {t('filters.active')}
           </span>
         )}
         <ChevronDown className={cn('w-4 h-4 ml-auto transition-transform', isOpen && 'rotate-180')} />
@@ -78,7 +79,7 @@ export function ModelFilters({ filters, onFiltersChange, isOpen, onToggle }: Mod
         <div className="space-y-4 pt-4 border-t border-[#333333]">
           {/* Sort By */}
           <div className="space-y-2">
-            <Label className="text-[#A0A0A0] text-sm">Sort By</Label>
+            <Label className="text-[#A0A0A0] text-sm">{t('filters.sort_by')}</Label>
             <Select
               value={filters.sortBy || 'newest'}
               onValueChange={value => updateFilter('sortBy', value)}
@@ -87,11 +88,11 @@ export function ModelFilters({ filters, onFiltersChange, isOpen, onToggle }: Mod
                 <SelectValue placeholder="Select sorting" />
               </SelectTrigger>
               <SelectContent className="bg-[#1A1A1A] border-[#333333]">
-                <SelectItem value="newest">Newest</SelectItem>
-                <SelectItem value="popular">Most Popular</SelectItem>
-                <SelectItem value="price_low">Price: Low to High</SelectItem>
-                <SelectItem value="price_high">Price: High to Low</SelectItem>
-                <SelectItem value="name">Name (A-Z)</SelectItem>
+                <SelectItem value="newest">{t('filters.newest')}</SelectItem>
+                <SelectItem value="popular">{t('filters.popular')}</SelectItem>
+                <SelectItem value="price_low">{t('filters.price_low')}</SelectItem>
+                <SelectItem value="price_high">{t('filters.price_high')}</SelectItem>
+                <SelectItem value="name">{t('filters.name')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -99,7 +100,7 @@ export function ModelFilters({ filters, onFiltersChange, isOpen, onToggle }: Mod
           {/* Price Range */}
           <div className="space-y-2">
             <Label className="text-[#A0A0A0] text-sm">
-              Price Range: ${filters.minPrice || 0} - ${filters.maxPrice || 100}
+              {t('filters.price_range', { min: filters.minPrice || 0, max: filters.maxPrice || 100 })}
             </Label>
             <div className="px-2">
               <Slider
@@ -117,7 +118,7 @@ export function ModelFilters({ filters, onFiltersChange, isOpen, onToggle }: Mod
 
           {/* Eye Color */}
           <div className="space-y-2">
-            <Label className="text-[#A0A0A0] text-sm">Eye Color</Label>
+            <Label className="text-[#A0A0A0] text-sm">{t('filters.eye_color')}</Label>
             <Select
               value={filters.eyeColor || 'all'}
               onValueChange={value => updateFilter('eyeColor', value === 'all' ? undefined : value)}
@@ -126,7 +127,7 @@ export function ModelFilters({ filters, onFiltersChange, isOpen, onToggle }: Mod
                 <SelectValue placeholder="Any" />
               </SelectTrigger>
               <SelectContent className="bg-[#1A1A1A] border-[#333333]">
-                <SelectItem value="all">Any</SelectItem>
+                <SelectItem value="all">{t('filters.any')}</SelectItem>
                 {EYE_COLORS.map(color => (
                   <SelectItem key={color} value={color}>{color}</SelectItem>
                 ))}
@@ -136,7 +137,7 @@ export function ModelFilters({ filters, onFiltersChange, isOpen, onToggle }: Mod
 
           {/* Hair Color */}
           <div className="space-y-2">
-            <Label className="text-[#A0A0A0] text-sm">Hair Color</Label>
+            <Label className="text-[#A0A0A0] text-sm">{t('filters.hair_color')}</Label>
             <Select
               value={filters.hairColor || 'all'}
               onValueChange={value => updateFilter('hairColor', value === 'all' ? undefined : value)}
@@ -145,7 +146,7 @@ export function ModelFilters({ filters, onFiltersChange, isOpen, onToggle }: Mod
                 <SelectValue placeholder="Any" />
               </SelectTrigger>
               <SelectContent className="bg-[#1A1A1A] border-[#333333]">
-                <SelectItem value="all">Any</SelectItem>
+                <SelectItem value="all">{t('filters.any')}</SelectItem>
                 {HAIR_COLORS.map(color => (
                   <SelectItem key={color} value={color}>{color}</SelectItem>
                 ))}
@@ -155,7 +156,7 @@ export function ModelFilters({ filters, onFiltersChange, isOpen, onToggle }: Mod
 
           {/* Ethnicity */}
           <div className="space-y-2">
-            <Label className="text-[#A0A0A0] text-sm">Ethnicity</Label>
+            <Label className="text-[#A0A0A0] text-sm">{t('filters.ethnicity')}</Label>
             <Select
               value={filters.ethnicity || 'all'}
               onValueChange={value => updateFilter('ethnicity', value === 'all' ? undefined : value)}
@@ -164,7 +165,7 @@ export function ModelFilters({ filters, onFiltersChange, isOpen, onToggle }: Mod
                 <SelectValue placeholder="Any" />
               </SelectTrigger>
               <SelectContent className="bg-[#1A1A1A] border-[#333333]">
-                <SelectItem value="all">Any</SelectItem>
+                <SelectItem value="all">{t('filters.any')}</SelectItem>
                 {ETHNICITIES.map(ethnicity => (
                   <SelectItem key={ethnicity} value={ethnicity}>{ethnicity}</SelectItem>
                 ))}
@@ -174,7 +175,7 @@ export function ModelFilters({ filters, onFiltersChange, isOpen, onToggle }: Mod
 
           {/* Free Trial Toggle */}
           <div className="flex items-center justify-between">
-            <Label className="text-[#A0A0A0] text-sm">Has Free Trial</Label>
+            <Label className="text-[#A0A0A0] text-sm">{t('filters.has_free_trial')}</Label>
             <Button
               variant={filters.hasFreeTrial ? 'default' : 'outline'}
               size="sm"
@@ -185,7 +186,7 @@ export function ModelFilters({ filters, onFiltersChange, isOpen, onToggle }: Mod
                   : 'border-[#333333] text-[#A0A0A0]'
               )}
             >
-              {filters.hasFreeTrial ? 'Yes' : 'No'}
+              {filters.hasFreeTrial ? t('filters.yes') : t('filters.no')}
             </Button>
           </div>
 
@@ -197,7 +198,7 @@ export function ModelFilters({ filters, onFiltersChange, isOpen, onToggle }: Mod
               className="w-full border-[#8B0000]/50 text-[#F5F5F5] hover:bg-[#8B0000]/20 hover:border-[#8B0000]"
             >
               <X className="w-4 h-4 mr-2" />
-              Clear All Filters
+              {t('filters.clear_all')}
             </Button>
           )}
         </div>

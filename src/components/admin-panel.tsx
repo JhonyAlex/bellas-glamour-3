@@ -8,6 +8,7 @@ import {
   TrendingUp, DollarSign, Activity, Settings
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { t } from '@/lib/i18n';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -107,8 +108,8 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                     <Shield className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <h1 className="text-xl font-semibold text-[#F5F5F5]">Admin Panel</h1>
-                    <p className="text-sm text-[#A0A0A0]">System administration & moderation</p>
+                    <h1 className="text-xl font-semibold text-[#F5F5F5]">{t('admin.title')}</h1>
+                    <p className="text-sm text-[#A0A0A0]">{t('admin.subtitle')}</p>
                   </div>
                 </div>
                 <button
@@ -123,40 +124,40 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
             {/* Tabs */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="p-6">
               <TabsList className="bg-[#1A1A1A] border border-[#333333] w-full justify-start rounded-lg p-1 mb-6">
-                <TabsTrigger 
+                  <TabsTrigger 
                   value="overview" 
                   className="data-[state=active]:bg-[#D4AF37] data-[state=active]:text-[#0A0A0A]"
                 >
                   <Activity className="w-4 h-4 mr-2" />
-                  Overview
+                  {t('admin.tabs.overview')}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="models"
                   className="data-[state=active]:bg-[#D4AF37] data-[state=active]:text-[#0A0A0A]"
                 >
                   <Users className="w-4 h-4 mr-2" />
-                  Models
+                  {t('admin.tabs.models')}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="media"
                   className="data-[state=active]:bg-[#D4AF37] data-[state=active]:text-[#0A0A0A]"
                 >
                   <ImageIcon className="w-4 h-4 mr-2" />
-                  Media
+                  {t('admin.tabs.media')}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="users"
                   className="data-[state=active]:bg-[#D4AF37] data-[state=active]:text-[#0A0A0A]"
                 >
                   <Users className="w-4 h-4 mr-2" />
-                  Users
+                  {t('admin.tabs.users')}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="compliance"
                   className="data-[state=active]:bg-[#D4AF37] data-[state=active]:text-[#0A0A0A]"
                 >
                   <FileText className="w-4 h-4 mr-2" />
-                  Compliance
+                  {t('admin.tabs.compliance')}
                 </TabsTrigger>
               </TabsList>
 
@@ -164,30 +165,30 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
               <TabsContent value="overview" className="space-y-6">
                 {/* Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <AdminStatCard
+                    <AdminStatCard
                     icon={<Users className="w-5 h-5" />}
-                    label="Total Users"
+                    label={t('admin.stats.total_users')}
                     value="12,450"
                     change="+234 this week"
                     positive
                   />
                   <AdminStatCard
                     icon={<DollarSign className="w-5 h-5" />}
-                    label="Revenue (MTD)"
+                    label={t('admin.stats.revenue')}
                     value={formatCurrency(125420)}
                     change="+12% vs last month"
                     positive
                   />
                   <AdminStatCard
                     icon={<Clock className="w-5 h-5" />}
-                    label="Pending Reviews"
+                    label={t('admin.stats.pending_reviews')}
                     value="8"
                     change="5 models, 3 media"
                     warning
                   />
                   <AdminStatCard
                     icon={<AlertTriangle className="w-5 h-5" />}
-                    label="Flagged Items"
+                    label={t('admin.stats.flagged_items')}
                     value="3"
                     change="1 critical"
                     negative
@@ -200,7 +201,7 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                   <Card className="bg-[#1A1A1A] border-[#333333]">
                     <CardHeader className="flex flex-row items-center justify-between">
                       <CardTitle className="text-[#F5F5F5] text-lg">
-                        Pending Model Verifications
+                        {t('admin.pending_models')}
                       </CardTitle>
                       <span className="px-2 py-1 bg-[#D4AF37]/20 text-[#D4AF37] text-xs rounded-full">
                         {mockPendingModels.length} pending
@@ -244,7 +245,7 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                   <Card className="bg-[#1A1A1A] border-[#333333]">
                     <CardHeader className="flex flex-row items-center justify-between">
                       <CardTitle className="text-[#F5F5F5] text-lg">
-                        Pending Media Review
+                        {t('admin.pending_media')}
                       </CardTitle>
                       <span className="px-2 py-1 bg-[#D4AF37]/20 text-[#D4AF37] text-xs rounded-full">
                         {mockPendingMedia.length} pending
@@ -279,15 +280,15 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#666666]" />
                     <Input
-                      placeholder="Search models..."
+                      placeholder={t('filters.search_placeholder')}
                       className="pl-10 bg-[#1A1A1A] border-[#333333]"
                     />
                   </div>
-                  <Button className="btn-premium">Export Data</Button>
+                  <Button className="btn-premium">{t('admin.export_data')}</Button>
                 </div>
                 {/* Models list would go here */}
                 <div className="text-center py-12 text-[#A0A0A0]">
-                  Model management interface would display here
+                  {t('admin.models_placeholder')}
                 </div>
               </TabsContent>
 
@@ -295,14 +296,14 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
               <TabsContent value="media" className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex gap-2">
-                    <Button variant="outline" className="border-[#333333]">All</Button>
-                    <Button variant="outline" className="border-[#333333]">Photos</Button>
-                    <Button variant="outline" className="border-[#333333]">Videos</Button>
-                    <Button variant="outline" className="border-[#8B0000]">Flagged</Button>
+                    <Button variant="outline" className="border-[#333333]">{t('filters.any')}</Button>
+                    <Button variant="outline" className="border-[#333333]">{t('model.photos')}</Button>
+                    <Button variant="outline" className="border-[#333333]">{t('model.videos')}</Button>
+                    <Button variant="outline" className="border-[#8B0000]">{t('admin.flagged')}</Button>
                   </div>
                 </div>
                 <div className="text-center py-12 text-[#A0A0A0]">
-                  Media moderation grid would display here
+                  {t('admin.media_placeholder')}
                 </div>
               </TabsContent>
 
@@ -312,14 +313,14 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#666666]" />
                     <Input
-                      placeholder="Search users by email or name..."
+                      placeholder={t('admin.search_users_placeholder')}
                       className="pl-10 bg-[#1A1A1A] border-[#333333]"
                     />
                   </div>
-                  <Button className="btn-premium">Export Users</Button>
+                  <Button className="btn-premium">{t('admin.export_users')}</Button>
                 </div>
                 <div className="text-center py-12 text-[#A0A0A0]">
-                  User management table would display here
+                  {t('admin.users_placeholder')}
                 </div>
               </TabsContent>
 
@@ -330,25 +331,25 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                     <CardHeader>
                       <CardTitle className="text-[#F5F5F5] flex items-center gap-2">
                         <FileText className="w-5 h-5 text-[#D4AF37]" />
-                        2257 Compliance
+                        {t('admin.compliance.title')}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
                         <div className="flex items-center justify-between p-3 bg-[#0A0A0A] rounded-lg">
-                          <span className="text-sm text-[#A0A0A0]">Verified Models</span>
+                          <span className="text-sm text-[#A0A0A0]">{t('admin.compliance_stats.verified_models')}</span>
                           <span className="text-[#F5F5F5] font-medium">248</span>
                         </div>
                         <div className="flex items-center justify-between p-3 bg-[#0A0A0A] rounded-lg">
-                          <span className="text-sm text-[#A0A0A0]">Documents on File</span>
+                          <span className="text-sm text-[#A0A0A0]">{t('admin.compliance_stats.documents_on_file')}</span>
                           <span className="text-[#F5F5F5] font-medium">496</span>
                         </div>
                         <div className="flex items-center justify-between p-3 bg-[#0A0A0A] rounded-lg">
-                          <span className="text-sm text-[#A0A0A0]">Expiring Soon (30 days)</span>
+                          <span className="text-sm text-[#A0A0A0]">{t('admin.compliance_stats.expiring_soon')}</span>
                           <span className="text-[#D4AF37] font-medium">12</span>
                         </div>
                         <Button className="w-full btn-premium">
-                          Export 2257 Records
+                          {t('admin.compliance_stats.export_2257')}
                         </Button>
                       </div>
                     </CardContent>
@@ -364,19 +365,19 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                     <CardContent>
                       <div className="space-y-4">
                         <div className="flex items-center justify-between p-3 bg-[#0A0A0A] rounded-lg">
-                          <span className="text-sm text-[#A0A0A0]">Pending Requests</span>
+                          <span className="text-sm text-[#A0A0A0]">{t('admin.pending_requests')}</span>
                           <span className="text-[#D4AF37] font-medium">3</span>
                         </div>
                         <div className="flex items-center justify-between p-3 bg-[#0A0A0A] rounded-lg">
-                          <span className="text-sm text-[#A0A0A0]">Processed This Month</span>
+                          <span className="text-sm text-[#A0A0A0]">{t('admin.processed_this_month')}</span>
                           <span className="text-[#F5F5F5] font-medium">8</span>
                         </div>
                         <div className="flex items-center justify-between p-3 bg-[#0A0A0A] rounded-lg">
-                          <span className="text-sm text-[#A0A0A0]">Total This Year</span>
+                          <span className="text-sm text-[#A0A0A0]">{t('admin.total_this_year')}</span>
                           <span className="text-[#F5F5F5] font-medium">45</span>
                         </div>
                         <Button variant="outline" className="w-full border-[#333333]">
-                          View All Requests
+                          {t('admin.view_all_requests')}
                         </Button>
                       </div>
                     </CardContent>
@@ -393,10 +394,10 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                   <CardContent>
                     <div className="space-y-2">
                       {[
-                        { action: 'Model Approved', user: 'admin@bg.com', time: '10 mins ago' },
-                        { action: 'Media Flagged', user: 'admin@bg.com', time: '25 mins ago' },
-                        { action: 'User Banned', user: 'admin@bg.com', time: '1 hour ago' },
-                        { action: 'Content Removed', user: 'mod@bg.com', time: '2 hours ago' },
+                        { action: t('admin.audit.model_approved'), user: 'admin@bg.com', time: t('admin.audit.time_10mins') },
+                        { action: t('admin.audit.media_flagged'), user: 'admin@bg.com', time: t('admin.audit.time_25mins') },
+                        { action: t('admin.audit.user_banned'), user: 'admin@bg.com', time: t('admin.audit.time_1hour') },
+                        { action: t('admin.audit.content_removed'), user: 'mod@bg.com', time: t('admin.audit.time_2hours') },
                       ].map((log, i) => (
                         <div
                           key={i}
@@ -404,7 +405,7 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                         >
                           <div>
                             <p className="text-sm text-[#F5F5F5]">{log.action}</p>
-                            <p className="text-xs text-[#A0A0A0]">by {log.user}</p>
+                            <p className="text-xs text-[#A0A0A0]">{t('admin.audit.by')} {log.user}</p>
                           </div>
                           <span className="text-xs text-[#A0A0A0]">{log.time}</span>
                         </div>
