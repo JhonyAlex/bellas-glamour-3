@@ -84,11 +84,9 @@
   "devDependencies": {
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "autoprefixer": "^10.4.16",
     "bun-types": "^1.3.4",
     "eslint": "^9",
     "eslint-config-next": "^16.1.1",
-    "postcss": "^8.4.31",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.5",
     "typescript": "^5"
