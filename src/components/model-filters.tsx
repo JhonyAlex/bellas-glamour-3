@@ -119,14 +119,14 @@ export function ModelFilters({ filters, onFiltersChange, isOpen, onToggle }: Mod
           <div className="space-y-2">
             <Label className="text-[#A0A0A0] text-sm">Eye Color</Label>
             <Select
-              value={filters.eyeColor || ''}
-              onValueChange={value => updateFilter('eyeColor', value || undefined)}
+              value={filters.eyeColor || 'all'}
+              onValueChange={value => updateFilter('eyeColor', value === 'all' ? undefined : value)}
             >
               <SelectTrigger className="bg-[#1A1A1A] border-[#333333] text-[#F5F5F5]">
                 <SelectValue placeholder="Any" />
               </SelectTrigger>
               <SelectContent className="bg-[#1A1A1A] border-[#333333]">
-                <SelectItem value="">Any</SelectItem>
+                <SelectItem value="all">Any</SelectItem>
                 {EYE_COLORS.map(color => (
                   <SelectItem key={color} value={color}>{color}</SelectItem>
                 ))}
@@ -138,14 +138,14 @@ export function ModelFilters({ filters, onFiltersChange, isOpen, onToggle }: Mod
           <div className="space-y-2">
             <Label className="text-[#A0A0A0] text-sm">Hair Color</Label>
             <Select
-              value={filters.hairColor || ''}
-              onValueChange={value => updateFilter('hairColor', value || undefined)}
+              value={filters.hairColor || 'all'}
+              onValueChange={value => updateFilter('hairColor', value === 'all' ? undefined : value)}
             >
               <SelectTrigger className="bg-[#1A1A1A] border-[#333333] text-[#F5F5F5]">
                 <SelectValue placeholder="Any" />
               </SelectTrigger>
               <SelectContent className="bg-[#1A1A1A] border-[#333333]">
-                <SelectItem value="">Any</SelectItem>
+                <SelectItem value="all">Any</SelectItem>
                 {HAIR_COLORS.map(color => (
                   <SelectItem key={color} value={color}>{color}</SelectItem>
                 ))}
@@ -157,14 +157,14 @@ export function ModelFilters({ filters, onFiltersChange, isOpen, onToggle }: Mod
           <div className="space-y-2">
             <Label className="text-[#A0A0A0] text-sm">Ethnicity</Label>
             <Select
-              value={filters.ethnicity || ''}
-              onValueChange={value => updateFilter('ethnicity', value || undefined)}
+              value={filters.ethnicity || 'all'}
+              onValueChange={value => updateFilter('ethnicity', value === 'all' ? undefined : value)}
             >
               <SelectTrigger className="bg-[#1A1A1A] border-[#333333] text-[#F5F5F5]">
                 <SelectValue placeholder="Any" />
               </SelectTrigger>
               <SelectContent className="bg-[#1A1A1A] border-[#333333]">
-                <SelectItem value="">Any</SelectItem>
+                <SelectItem value="all">Any</SelectItem>
                 {ETHNICITIES.map(ethnicity => (
                   <SelectItem key={ethnicity} value={ethnicity}>{ethnicity}</SelectItem>
                 ))}
