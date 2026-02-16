@@ -11,7 +11,7 @@ import { t } from '@/lib/i18n';
 
 export function AgeGateModal() {
   const { showAgeGate, verifyAge } = useAgeVerification();
-  const [birthDate, setBirthDate] = useState('');
+  const [birthYear, setBirthYear] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -20,31 +20,27 @@ export function AgeGateModal() {
     setIsSubmitting(true);
     setError('');
 
-    if (!birthDate) {
-      setError(t('age_gate.error_enter_dob'));
+    if (!birthYear) {
+      setError(t('age_gate.error_enter_year'));
       setIsSubmitting(false);
       return;
     }
 
-    const date = new Date(birthDate);
-    const today = new Date();
+    const year = parseInt(birthYear);
+    const currentYear = new Date().getFullYear();
     
-    // Check if date is valid
-    if (isNaN(date.getTime())) {
-      setError(t('age_gate.error_valid_dob'));
+    // Check if year is valid
+    if (isNaN(year) || year < 1900 || year > currentYear) {
+      setError(t('age_gate.error_valid_year'));
       setIsSubmitting(false);
       return;
     }
 
-    // Check if date is in the future
-    if (date > today) {
-      setError(t('age_gate.error_future_dob'));
-      setIsSubmitting(false);
-      return;
-    }
-
+    // Calculate age based on birth year (using January 1st of that year)
+    const birthDate = new Date(year, 0, 1);
+    
     // Check age
-    const isOverAge = verifyAge(date);
+    const isOverAge = verifyAge(birthDate);
     
     if (!isOverAge) {
       setError(t('age_gate.error_under_age', { age: MINIMUM_AGE }));
@@ -100,16 +96,18 @@ export function AgeGateModal() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <label className="block text-sm text-[#F5F5F5] mb-2">
-                    {t('age_gate.enter_dob')}
+                    {t('age_gate.enter_birth_year')}
                   </label>
                   <div className="relative">
                     <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-[#D4AF37]" />
                     <input
-                      type="date"
-                      value={birthDate}
-                      onChange={(e) => setBirthDate(e.target.value)}
+                      type="number"
+                      value={birthYear}
+                      onChange={(e) => setBirthYear(e.target.value)}
+                      placeholder={t('age_gate.year_placeholder')}
+                      min="1900"
+                      max={new Date().getFullYear()}
                       className="w-full pl-10 pr-4 py-3 bg-[#1A1A1A] border border-[#333333] rounded-lg text-[#F5F5F5] focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] transition-colors"
-                      max={new Date().toISOString().split('T')[0]}
                     />
                   </div>
                 </div>

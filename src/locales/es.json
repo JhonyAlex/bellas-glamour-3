@@ -177,7 +177,11 @@
   },
   "age_gate": {
     "title": "Verificación de edad requerida",
+    "enter_birth_year": "Introduce tu año de nacimiento",
+    "year_placeholder": "ej. 1990",
     "enter_dob": "Introduce tu fecha de nacimiento",
+    "error_enter_year": "Por favor ingresa tu año de nacimiento",
+    "error_valid_year": "Por favor ingresa un año válido",
     "error_enter_dob": "Por favor ingresa tu fecha de nacimiento",
     "error_valid_dob": "Por favor ingresa una fecha de nacimiento válida",
     "error_future_dob": "La fecha de nacimiento no puede estar en el futuro",
