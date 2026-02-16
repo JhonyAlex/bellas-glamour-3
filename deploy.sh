@@ -1,200 +1,81 @@
 #!/bin/bash
 
-# ====================================
-# Bellas Glamour - Deployment Script
-# Para: Spaceship/cPanel con Node.js
-# ====================================
+# Deploy script for Bellas Glamour
+# Automates: build → commit → push → server deploy
 
 set -e  # Exit on error
 
-# Colores para output
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SSH_KEY="C:/Users/jhony/Downloads/id_rsa"
+SSH_USER="otfidqlcuq"
+SSH_HOST="server5.shared.spaceship.host"
+SSH_PORT="21098"
+APP_PATH="/home/otfidqlcuq/bellasglamour.com/bellas-glamour-3"
+
+# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Función para imprimir con colores
-print_step() {
-    echo -e "\n${BLUE}▶ $1${NC}"
-}
+echo -e "${BLUE}===================================================${NC}"
+echo -e "${BLUE}  BELLAS GLAMOUR - AUTOMATED DEPLOYMENT SCRIPT${NC}"
+echo -e "${BLUE}===================================================${NC}\n"
 
-print_success() {
-    echo -e "${GREEN}✓ $1${NC}"
-}
-
-print_error() {
-    echo -e "${RED}✗ $1${NC}"
-}
-
-print_info() {
-    echo -e "${YELLOW}ℹ $1${NC}"
-}
-
-# Variables de configuración
-APP_NAME="bellas-glamour"
-APP_DIR="/home/otfidqlcuq/public_html"
-REPO_URL="https://github.com/JhonyAlex/bellas-glamour-3.git"
-BRANCH="main"
-NODE_VERSION="20"
-
-# ====================================
-# PASO 1: Actualizar sistema
-# ====================================
-print_step "Paso 1: Verificar Node.js y npm"
-if ! command -v node &> /dev/null; then
-    print_error "Node.js no está instalado"
-    print_info "Por favor instala Node.js 18+ desde cPanel o usando nvm"
+# Step 1: Check for uncommitted changes
+echo -e "${YELLOW}[1/5] Checking for uncommitted changes...${NC}"
+cd "$PROJECT_DIR"
+if [ -n "$(git status --porcelain)" ]; then
+    echo -e "${RED}Error: You have uncommitted changes.${NC}"
+    echo "Please commit your changes first:"
+    echo "  git add ."
+    echo "  git commit -m 'Your message'"
     exit 1
 fi
+echo -e "${GREEN}✓ No uncommitted changes${NC}\n"
 
-NODE_V=$(node --version)
-NPM_V=$(npm --version)
-print_success "Node.js: $NODE_V"
-print_success "npm: $NPM_V"
+# Step 2: Build locally
+echo -e "${YELLOW}[2/5] Building Next.js locally...${NC}"
+npm run build 2>&1 | tail -5
+echo -e "${GREEN}✓ Build successful${NC}\n"
 
-# ====================================
-# PASO 2: Clonar o actualizar repositorio
-# ====================================
-print_step "Paso 2: Clonando/actualizando repositorio"
+# Step 3: Create tarball
+echo -e "${YELLOW}[3/5] Creating tarball (this may take a minute)...${NC}"
+tar czf /tmp/next-build.tar.gz .next/standalone .next/static public 2>&1 | grep -v "^tar:" || true
+TARBALL_SIZE=$(du -sh /tmp/next-build.tar.gz | cut -f1)
+echo -e "${GREEN}✓ Tarball created (${TARBALL_SIZE})${NC}\n"
 
-if [ -d "$APP_DIR/.git" ]; then
-    print_info "Repositorio existente, actualizando..."
-    cd "$APP_DIR"
-    git fetch origin
-    git reset --hard origin/$BRANCH
-else
-    print_info "Clonando repositorio..."
-    cd /home/otfidqlcuq
-    git clone -b $BRANCH $REPO_URL public_html
-    cd "$APP_DIR"
-fi
+# Step 4: Upload to server
+echo -e "${YELLOW}[4/5] Uploading to server via SCP...${NC}"
+scp -P "$SSH_PORT" -i "$SSH_KEY" /tmp/next-build.tar.gz "$SSH_USER@$SSH_HOST:$APP_PATH/" 2>&1 | grep -v "^Warning" || true
+echo -e "${GREEN}✓ Upload complete${NC}\n"
 
-print_success "Repositorio actualizado"
-
-# ====================================
-# PASO 3: Crear archivo .env.production
-# ====================================
-print_step "Paso 3: Verificando archivo .env.production"
-
-if [ ! -f "$APP_DIR/.env.production" ]; then
-    print_error "Archivo .env.production no existe"
-    print_info "Por favor crea el archivo con las siguientes variables:"
-    echo ""
-    echo "DATABASE_URL=\"mysql://usuario:contraseña@localhost:3306/bellasglamour_db\""
-    echo "NEXTAUTH_SECRET=\"$(openssl rand -base64 32)\""
-    echo "NEXTAUTH_URL=\"https://bellasglamour.com\""
-    echo "JWT_SECRET=\"$(openssl rand -base64 32)\""
-    echo "STRIPE_WEBHOOK_SECRET=\"whsec_test\""
-    echo ""
-    exit 1
-fi
-
-print_success "Archivo .env.production encontrado"
-
-# ====================================
-# PASO 4: Instalar dependencias
-# ====================================
-print_step "Paso 4: Instalando dependencias"
-
-npm ci --prefer-offline --no-audit 2>&1 | grep -E "added|up to date|npm warn"
-
-print_success "Dependencias instaladas"
-
-# ====================================
-# PASO 5: Generar Prisma Client
-# ====================================
-print_step "Paso 5: Generando Prisma Client"
-
-npx prisma generate
-
-print_success "Prisma Client generado"
-
-# ====================================
-# PASO 6: Ejecutar migraciones
-# ====================================
-print_step "Paso 6: Ejecutando migraciones de base de datos"
-
-npx prisma db push --skip-generate
-
-print_success "Migraciones ejecutadas"
-
-# ====================================
-# PASO 7: Compilar aplicación
-# ====================================
-print_step "Paso 7: Compilando aplicación"
-
-npm run build
-
-print_success "Aplicación compilada"
-
-# ====================================
-# PASO 8: Instalar y configurar PM2
-# ====================================
-print_step "Paso 8: Configurando PM2"
-
-if ! command -v pm2 &> /dev/null; then
-    npm install -g pm2
-fi
-
-# Crear archivo de configuración de PM2
-cat > "$APP_DIR/ecosystem.config.js" << 'EOF'
-module.exports = {
-  apps: [{
-    name: 'bellas-glamour',
-    script: 'npm',
-    args: 'start',
-    instances: 1,
-    exec_mode: 'fork',
-    env: {
-      NODE_ENV: 'production',
-      PORT: 3000
-    },
-    error_file: '/home/otfidqlcuq/logs/pm2_error.log',
-    out_file: '/home/otfidqlcuq/logs/pm2_out.log',
-    log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
-    watch: false,
-    ignore_watch: ['node_modules', '.next', '.git'],
-    max_memory_restart: '500M',
-    merge_logs: true,
-  }]
-};
+# Step 5: Extract and restart on server
+echo -e "${YELLOW}[5/5] Extracting and restarting on server...${NC}"
+ssh -p "$SSH_PORT" -i "$SSH_KEY" "$SSH_USER@$SSH_HOST" << 'EOF'
+cd /home/otfidqlcuq/bellasglamour.com/bellas-glamour-3
+chmod -R u+rwx .next public 2>/dev/null
+rm -rf .next public
+tar xzf next-build.tar.gz --no-same-permissions --no-same-owner
+rm next-build.tar.gz
+cp .env.production .next/standalone/
+touch tmp/restart.txt
+echo "OK"
 EOF
 
-# Crear directorio de logs si no existe
-mkdir -p /home/otfidqlcuq/logs
+echo -e "${GREEN}✓ Server updated and restarted${NC}\n"
 
-# Detener proceso anterior si existe
-pm2 delete $APP_NAME 2>/dev/null || true
-
-# Iniciar con PM2
-pm2 start ecosystem.config.js --env production
-
-# Guardar configuración de PM2 para reinicio automático
-pm2 save
-pm2 startup
-
-print_success "PM2 configurado y ejecutando"
-
-# ====================================
-# PASO 9: Información final
-# ====================================
-print_step "Deployment completado"
-echo ""
-print_success "Tu aplicación está corriendo en:"
-echo "  ${BLUE}https://bellasglamour.com${NC}"
-echo ""
-echo "Comandos útiles PM2:"
-echo "  ${YELLOW}pm2 logs bellas-glamour${NC}              - Ver logs en tiempo real"
-echo "  ${YELLOW}pm2 status${NC}                           - Estado de la aplicación"
-echo "  ${YELLOW}pm2 restart bellas-glamour${NC}          - Reiniciar aplicación"
-echo "  ${YELLOW}pm2 stop bellas-glamour${NC}             - Detener aplicación"
-echo "  ${YELLOW}pm2 delete bellas-glamour${NC}           - Eliminar del control de PM2"
-echo ""
-
-print_info "Próximos pasos:"
-echo "  1. Verificar SSL/TLS en cPanel"
-echo "  2. Configurar DNS si es necesario"
-echo "  3. Probar la aplicación en https://bellasglamour.com"
-echo "  4. Monitorear logs: pm2 logs"
-echo ""
+# Verify
+echo -e "${YELLOW}Verifying deployment...${NC}"
+HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" https://bellasglamour.com/ 2>/dev/null || echo "000")
+if [ "$HTTP_CODE" = "200" ]; then
+    echo -e "${GREEN}✓ Site is up (HTTP 200)${NC}\n"
+    echo -e "${GREEN}===================================================${NC}"
+    echo -e "${GREEN}  ✓ DEPLOYMENT SUCCESSFUL!${NC}"
+    echo -e "${GREEN}===================================================${NC}\n"
+    rm /tmp/next-build.tar.gz
+else
+    echo -e "${RED}✗ Site returned HTTP $HTTP_CODE (check server logs)${NC}\n"
+    exit 1
+fi

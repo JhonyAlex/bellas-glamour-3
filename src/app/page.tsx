@@ -260,33 +260,40 @@ function BellasGlamourContent() {
 
       {/* Hero Section */}
       <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Animated Background */}
+        {/* Background Image with Overlay */}
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#0A0A0A] via-[#1A1A1A] to-[#0A0A0A] animate-gradient" />
+          {/* Background Image */}
+          <img
+            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=1600&h=900&fit=crop"
+            alt="Hero Background"
+            className="w-full h-full object-cover"
+          />
+          {/* Dark Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0A0A0A]/85 via-[#1A1A1A]/75 to-[#0A0A0A]/85" />
           <div className="absolute inset-0 hero-pattern opacity-30" />
-          
+
           {/* Decorative Gold Elements */}
           <motion.div
-            animate={{ 
+            animate={{
               rotate: 360,
               scale: [1, 1.1, 1],
             }}
-            transition={{ 
-              duration: 20, 
-              repeat: Infinity, 
-              ease: 'linear' 
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              ease: 'linear'
             }}
             className="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-radial from-[#D4AF37]/5 to-transparent rounded-full"
           />
           <motion.div
-            animate={{ 
+            animate={{
               rotate: -360,
               scale: [1, 1.2, 1],
             }}
-            transition={{ 
-              duration: 25, 
-              repeat: Infinity, 
-              ease: 'linear' 
+            transition={{
+              duration: 25,
+              repeat: Infinity,
+              ease: 'linear'
             }}
             className="absolute -bottom-1/2 -left-1/2 w-full h-full bg-gradient-radial from-[#D4AF37]/3 to-transparent rounded-full"
           />
