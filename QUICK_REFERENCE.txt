@@ -1,0 +1,222 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                  BELLAS GLAMOUR - DEPLOYMENT QUICK REFERENCE                 ║
+║                           Spaceship + cPanel + Node.js                        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+DATOS IMPORTANTES
+═════════════════════════════════════════════════════════════════════════════════
+
+Dominio:               bellasglamour.com
+Hosting:               Spaceship (cPanel)
+Usuario SSH:           otfidqlcuq
+Repositorio:           https://github.com/JhonyAlex/bellas-glamour-3.git
+Rama:                  main
+Aplicación:            Next.js 16 + Prisma + MySQL
+Puerto:                3000 (PM2)
+Memoria disponible:    4 GB
+cPanel:                https://bellasglamour.com:2083
+
+
+DATOS DE BASE DE DATOS (Completar después de crear en cPanel)
+═════════════════════════════════════════════════════════════════════════════════
+
+Host MySQL:            localhost
+Usuario MySQL:         otfidqlcuq_bellas_user
+Contraseña MySQL:      [COMPLETAR DESPUÉS]
+Base de datos:         otfidqlcuq_bellas_glamour
+Puerto:                3306
+
+DATABASE_URL:
+mysql://otfidqlcuq_bellas_user:[PASSWORD]@localhost:3306/otfidqlcuq_bellas_glamour
+
+
+CONEXIÓN SSH
+═════════════════════════════════════════════════════════════════════════════════
+
+ssh otfidqlcuq@bellasglamour.com
+# Usa tu contraseña de cPanel
+
+
+PASOS DE DEPLOYMENT (Copiar en orden)
+═════════════════════════════════════════════════════════════════════════════════
+
+# 1. CONECTAR
+ssh otfidqlcuq@bellasglamour.com
+
+# 2. PREPARAR DIRECTORIOS
+mkdir -p ~/public_html ~/logs
+chmod 755 ~/public_html ~/logs
+
+# 3. CLONAR REPOSITORIO
+cd ~/public_html
+git clone https://github.com/JhonyAlex/bellas-glamour-3.git .
+
+# 4. CREAR .env.production
+nano .env.production
+
+# COPIAR ESTO EN .env.production:
+DATABASE_URL="mysql://otfidqlcuq_bellas_user:[CONTRASEÑA]@localhost:3306/otfidqlcuq_bellas_glamour"
+NEXTAUTH_SECRET="[GENERA CON: openssl rand -base64 32]"
+NEXTAUTH_URL="https://bellasglamour.com"
+JWT_SECRET="[GENERA CON: openssl rand -base64 32]"
+STRIPE_PUBLIC_KEY="pk_live_xxxx"
+STRIPE_SECRET_KEY="sk_live_xxxx"
+STRIPE_WEBHOOK_SECRET="whsec_xxxx"
+NODE_ENV="production"
+PORT="3000"
+DEBUG="false"
+
+# Guardar: Ctrl+X, Y, Enter
+# Proteger: chmod 600 .env.production
+
+# 5. INSTALAR DEPENDENCIAS
+npm ci --prefer-offline --no-audit
+
+# 6. CONFIGURAR PRISMA
+npx prisma generate
+npx prisma db push
+
+# 7. COMPILAR
+npm run build
+
+# 8. INSTALAR PM2
+npm install -g pm2
+
+# 9. CREAR ecosystem.config.js
+nano ecosystem.config.js
+
+# COPIAR ESTO EN ecosystem.config.js:
+module.exports = {
+  apps: [{
+    name: 'bellas-glamour',
+    script: 'npm',
+    args: 'start',
+    instances: 1,
+    exec_mode: 'fork',
+    env: { NODE_ENV: 'production', PORT: 3000 },
+    error_file: '/home/otfidqlcuq/logs/pm2_error.log',
+    out_file: '/home/otfidqlcuq/logs/pm2_out.log',
+    log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
+    watch: false,
+    ignore_watch: ['node_modules', '.next', '.git'],
+    max_memory_restart: '500M',
+  }]
+};
+
+# Guardar: Ctrl+X, Y, Enter
+
+# 10. INICIAR CON PM2
+pm2 start ecosystem.config.js --env production
+pm2 save
+pm2 startup
+
+# 11. VERIFICAR
+pm2 status
+pm2 logs bellas-glamour --lines 50
+curl http://localhost:3000
+
+# 12. ABRIR EN NAVEGADOR
+# https://bellasglamour.com
+
+
+COMANDOS ÚTILES PM2
+═════════════════════════════════════════════════════════════════════════════════
+
+pm2 status                                # Ver estado
+pm2 logs bellas-glamour                   # Ver logs en vivo (Ctrl+C para salir)
+pm2 logs bellas-glamour --lines 100       # Ver últimas 100 líneas
+pm2 restart bellas-glamour                # Reiniciar app
+pm2 stop bellas-glamour                   # Detener app
+pm2 start bellas-glamour                  # Iniciar app
+pm2 delete bellas-glamour                 # Eliminar de PM2
+pm2 monit                                 # Monitoreo en tiempo real
+pm2 show bellas-glamour                   # Información detallada
+pm2 save                                  # Guardar estado
+pm2 startup                               # Configurar reinicio automático
+
+
+ACTUALIZAR CÓDIGO (Después de push a GitHub)
+═════════════════════════════════════════════════════════════════════════════════
+
+ssh otfidqlcuq@bellasglamour.com
+cd ~/public_html
+git pull origin main
+npm ci
+npm run build
+pm2 restart bellas-glamour
+pm2 logs bellas-glamour
+
+
+SOLUCIÓN DE PROBLEMAS
+═════════════════════════════════════════════════════════════════════════════════
+
+App no inicia:
+  pm2 logs bellas-glamour
+  # Busca errores en rojo
+
+Puerto 3000 en uso:
+  lsof -i :3000
+  kill -9 [PID]
+
+Verificar BD:
+  mysql -u otfidqlcuq_bellas_user -p
+  SHOW DATABASES;
+  EXIT;
+
+Reiniciar todo:
+  pm2 delete bellas-glamour
+  pm2 start ecosystem.config.js --env production
+
+
+ARCHIVOS IMPORTANTES
+═════════════════════════════════════════════════════════════════════════════════
+
+En tu máquina local:
+  /DEPLOYMENT_GUIDE.md           - Guía completa paso a paso
+  /DEPLOYMENT_CHECKLIST.md       - Checklist para marcar progreso
+  /MYSQL_SETUP.md                - Guía de configuración MySQL
+  /deploy.sh                     - Script automatizado
+  /.env.production.example       - Ejemplo de variables de entorno
+
+En el servidor (después de deployment):
+  ~/public_html/.env.production         - Credenciales (SECRETO)
+  ~/public_html/ecosystem.config.js     - Configuración de PM2
+  ~/logs/pm2_error.log                  - Logs de errores
+  ~/logs/pm2_out.log                    - Logs generales
+
+
+NOTAS IMPORTANTES
+═════════════════════════════════════════════════════════════════════════════════
+
+⚠️  SEGURIDAD
+  - NUNCA compartas tu .env.production
+  - NUNCA hagas commit de .env.production a Git
+  - Usa contraseñas muy fuertes para MySQL (16+ caracteres)
+  - Guarda contraseñas en un gestor seguro
+  - Protege archivos: chmod 600 .env.production
+
+⚠️  BASES DE DATOS
+  - El host es "localhost" (no una IP)
+  - El usuario tiene prefijo: otfidqlcuq_
+  - Verifica que el usuario tiene ALL PRIVILEGES
+  - Haz backups regularmente
+
+⚠️  APLICACIÓN
+  - La memoria máxima es 500MB (PM2 reinicia si la supera)
+  - PM2 guarda logs en ~/logs/
+  - La aplicación se reinicia automáticamente al rebootear el servidor
+  - Revisa logs regularmente: pm2 logs bellas-glamour
+
+
+SI NECESITAS AYUDA
+═════════════════════════════════════════════════════════════════════════════════
+
+1. Revisa los logs: pm2 logs bellas-glamour
+2. Lee DEPLOYMENT_GUIDE.md para más detalles
+3. Verifica .env.production está correcto
+4. Asegúrate que BD está conectada
+5. Contacta a Spaceship si hay problemas de servidor
+
+═════════════════════════════════════════════════════════════════════════════════
+Última actualización: 2026-02-16
+═════════════════════════════════════════════════════════════════════════════════
