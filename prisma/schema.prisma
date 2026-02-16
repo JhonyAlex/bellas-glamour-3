@@ -1,0 +1,656 @@
+// Bellas Glamour - Premium Adult Content Platform
+// Complete Database Schema (SQLite Compatible)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// USER MANAGEMENT
+// ============================================================================
+
+/// Main user model with role-based access control
+model User {
+  id                      String    @id @default(cuid())
+  email                   String    @unique
+  password_hash           String?
+  name                    String?
+  
+  // Role: admin, model, subscriber, visitor
+  role                    String    @default("visitor")
+  
+  // Email verification
+  email_verified          Boolean   @default(false)
+  email_verification_token String?  @unique
+  email_verification_expires DateTime?
+  
+  // Age verification (AVS - Age Verification System)
+  age_verified            Boolean   @default(false)
+  age_verification_method String?   // credit_card, id_document, third_party
+  age_verification_date   DateTime?
+  
+  // Location & restrictions
+  country_code            String?
+  ip_address              String?
+  
+  // Account status
+  is_banned               Boolean   @default(false)
+  ban_reason              String?
+  banned_at               DateTime?
+  
+  // Two-factor authentication
+  two_factor_enabled      Boolean   @default(false)
+  two_factor_secret       String?
+  
+  // Timestamps
+  created_at              DateTime  @default(now())
+  updated_at              DateTime  @updatedAt
+  last_login              DateTime?
+  
+  // Relations
+  profile                 Profile?
+  subscriptions           Subscription[]
+  transactions            Transaction[]
+  audit_logs              AuditLog[]
+  notifications           Notification[]
+  sessions                Session[]
+  accounts                Account[]
+
+  @@index([email])
+  @@index([role])
+  @@index([age_verified])
+}
+
+// NextAuth required models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ============================================================================
+// MODEL PROFILES
+// ============================================================================
+
+/// Model/Creator profile with verification status
+model Profile {
+  id                    String    @id @default(cuid())
+  user_id               String    @unique
+  user                  User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  // Public profile
+  stage_name            String
+  slug                  String    @unique
+  display_name          String?
+  bio                   String?
+  avatar_url            String?
+  cover_url             String?
+  
+  // Physical attributes
+  height                String?
+  weight                String?
+  eye_color             String?
+  hair_color            String?
+  measurements          String?
+  ethnicity             String?
+  
+  // Personal details
+  interests             String?   // JSON array
+  languages             String?   // JSON array
+  location              String?
+  birthdate             DateTime?
+  
+  // Social links (JSON)
+  social_links          String?
+  
+  // Profile status
+  status                String    @default("pending") // pending, approved, suspended, rejected
+  status_reason         String?
+  
+  // Verification (2257 Compliance)
+  verification_status   String    @default("unverified") // unverified, pending_id, verified
+  id_document_type      String?   // passport, driver_license, national_id
+  id_document_url       String?   // Encrypted path
+  id_document_hash      String?   // For verification
+  model_release_signed  Boolean   @default(false)
+  model_release_url     String?
+  
+  // Approval tracking
+  approved_at           DateTime?
+  approved_by           String?
+  rejected_at           DateTime?
+  rejected_by           String?
+  rejection_reason      String?
+  
+  // Subscription settings
+  subscription_price    Float     @default(9.99)
+  subscription_discount Float?
+  has_free_trial        Boolean   @default(false)
+  trial_days            Int       @default(0)
+  
+  // Earnings
+  earnings_total        Float     @default(0)
+  earnings_pending      Float     @default(0)
+  earnings_withdrawn    Float     @default(0)
+  
+  // Stats
+  subscribers_count     Int       @default(0)
+  views_count           Int       @default(0)
+  likes_count           Int       @default(0)
+  
+  // Featured status
+  is_featured           Boolean   @default(false)
+  featured_until        DateTime?
+  featured_order        Int?
+  
+  // Timestamps
+  created_at            DateTime  @default(now())
+  updated_at            DateTime  @updatedAt
+  
+  // Relations
+  media                 Media[]
+  subscriptions         Subscription[]
+  age_verification_logs AgeVerificationLog[]
+  messages_received     Message[]  @relation("MessageReceiver")
+  tips                  Tip[]
+
+  @@index([slug])
+  @@index([status])
+  @@index([verification_status])
+  @@index([is_featured])
+}
+
+// ============================================================================
+// MEDIA CONTENT
+// ============================================================================
+
+/// Media content (photos, videos, gifs)
+model Media {
+  id                  String    @id @default(cuid())
+  profile_id          String
+  profile             Profile   @relation(fields: [profile_id], references: [id], onDelete: Cascade)
+  
+  // Content info
+  type                String    // photo, video, gif
+  title               String?
+  description         String?
+  tags                String?   // JSON array
+  
+  // File storage
+  original_url        String
+  url                 String    // Processed/cdn url
+  thumbnail_url       String?
+  watermarked_url     String?
+  preview_url         String?
+  
+  // File metadata
+  file_size           Int?
+  width               Int?
+  height              Int?
+  duration            Int?      // For videos (seconds)
+  format              String?   // jpg, png, mp4, etc.
+  
+  // Content settings
+  is_premium          Boolean   @default(false)
+  is_ppv              Boolean   @default(false)
+  price               Float?
+  is_pinned           Boolean   @default(false)
+  is_archived         Boolean   @default(false)
+  
+  // Moderation
+  moderation_status   String    @default("pending") // pending, approved, rejected, flagged
+  moderation_notes    String?
+  moderation_flags    String?   // JSON array of flags
+  moderated_by        String?
+  moderated_at        DateTime?
+  
+  // Content safety
+  exif_removed        Boolean   @default(false)
+  content_warnings    String?   // JSON array
+  ai_scanned          Boolean   @default(false)
+  ai_scan_result      String?
+  
+  // Stats
+  views_count         Int       @default(0)
+  likes_count         Int       @default(0)
+  comments_count      Int       @default(0)
+  unlock_count        Int       @default(0) // For PPV
+  
+  // Scheduling
+  scheduled_at        DateTime?
+  published_at        DateTime?
+  
+  // Timestamps
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
+  
+  // Relations
+  likes               MediaLike[]
+  comments            Comment[]
+  unlocks             MediaUnlock[]
+
+  @@index([profile_id])
+  @@index([type])
+  @@index([moderation_status])
+  @@index([is_premium])
+  @@index([created_at])
+}
+
+// ============================================================================
+// SUBSCRIPTIONS & PAYMENTS
+// ============================================================================
+
+/// User subscriptions to models
+model Subscription {
+  id                     String    @id @default(cuid())
+  subscriber_id          String
+  subscriber             User      @relation(fields: [subscriber_id], references: [id], onDelete: Cascade)
+  profile_id             String
+  profile                Profile   @relation(fields: [profile_id], references: [id], onDelete: Cascade)
+  
+  // Stripe integration
+  stripe_subscription_id String?  @unique
+  stripe_customer_id     String?
+  
+  // Subscription status
+  status                 String    @default("active") // active, canceled, past_due, paused, expired
+  cancel_at_period_end   Boolean   @default(false)
+  canceled_at            DateTime?
+  cancellation_reason    String?
+  
+  // Billing period
+  current_period_start   DateTime?
+  current_period_end     DateTime?
+  
+  // Pricing
+  amount                 Float
+  currency               String    @default("USD")
+  
+  // Trial
+  is_trial               Boolean   @default(false)
+  trial_ends_at          DateTime?
+  
+  // Timestamps
+  created_at             DateTime  @default(now())
+  updated_at             DateTime  @updatedAt
+
+  @@unique([subscriber_id, profile_id])
+  @@index([subscriber_id])
+  @@index([profile_id])
+  @@index([status])
+}
+
+/// Financial transactions
+model Transaction {
+  id                       String    @id @default(cuid())
+  user_id                  String
+  user                     User      @relation(fields: [user_id], references: [id])
+  profile_id               String?
+  
+  // Transaction details
+  amount                   Float
+  currency                 String    @default("USD")
+  type                     String    // subscription, tip, ppv_unlock, payout, refund
+  status                   String    @default("pending") // pending, completed, failed, refunded
+  
+  // Stripe integration
+  stripe_payment_intent_id String?
+  stripe_charge_id         String?
+  stripe_transfer_id       String?
+  
+  // Fee tracking
+  platform_fee             Float?
+  creator_amount           Float?
+  
+  // Reference
+  reference_type           String?   // subscription, media, tip
+  reference_id             String?
+  
+  // Metadata
+  description              String?
+  metadata                 String?   // JSON
+  
+  // Timestamps
+  created_at               DateTime  @default(now())
+  updated_at               DateTime  @updatedAt
+  completed_at             DateTime?
+
+  @@index([user_id])
+  @@index([profile_id])
+  @@index([type])
+  @@index([status])
+  @@index([created_at])
+}
+
+/// Tips sent to models
+model Tip {
+  id              String    @id @default(cuid())
+  sender_id       String
+  profile_id      String
+  profile         Profile   @relation(fields: [profile_id], references: [id], onDelete: Cascade)
+  
+  // Amount
+  amount          Float
+  currency        String    @default("USD")
+  
+  // Message (optional)
+  message         String?
+  is_private      Boolean   @default(true)
+  
+  // Status
+  status          String    @default("completed") // pending, completed, failed, refunded
+  
+  // Stripe
+  stripe_payment_intent_id String?
+  
+  // Timestamps
+  created_at      DateTime  @default(now())
+
+  @@index([profile_id])
+  @@index([sender_id])
+}
+
+/// Media unlocks (PPV)
+model MediaUnlock {
+  id          String    @id @default(cuid())
+  user_id     String
+  media_id    String
+  media       Media     @relation(fields: [media_id], references: [id], onDelete: Cascade)
+  
+  // Payment
+  amount      Float
+  currency    String    @default("USD")
+  
+  // Stripe
+  stripe_payment_intent_id String?
+  
+  // Timestamps
+  created_at  DateTime  @default(now())
+
+  @@unique([user_id, media_id])
+  @@index([user_id])
+  @@index([media_id])
+}
+
+// ============================================================================
+// ENGAGEMENT
+// ============================================================================
+
+/// Media likes
+model MediaLike {
+  id          String    @id @default(cuid())
+  user_id     String
+  media_id    String
+  media       Media     @relation(fields: [media_id], references: [id], onDelete: Cascade)
+  created_at  DateTime  @default(now())
+
+  @@unique([user_id, media_id])
+  @@index([media_id])
+}
+
+/// Comments on media
+model Comment {
+  id          String    @id @default(cuid())
+  user_id     String
+  media_id    String
+  media       Media     @relation(fields: [media_id], references: [id], onDelete: Cascade)
+  
+  content     String
+  is_pinned   Boolean   @default(false)
+  
+  // Moderation
+  is_hidden   Boolean   @default(false)
+  hidden_reason String?
+  
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  @@index([media_id])
+  @@index([user_id])
+}
+
+// ============================================================================
+// MESSAGING
+// ============================================================================
+
+/// Direct messages
+model Message {
+  id              String    @id @default(cuid())
+  sender_id       String
+  receiver_id     String
+  receiver        Profile   @relation("MessageReceiver", fields: [receiver_id], references: [id], onDelete: Cascade)
+  
+  content         String?
+  media_url       String?
+  
+  // Status
+  is_read         Boolean   @default(false)
+  read_at         DateTime?
+  
+  // For tips attached to messages
+  tip_id          String?
+  
+  // Timestamps
+  created_at      DateTime  @default(now())
+
+  @@index([sender_id])
+  @@index([receiver_id])
+}
+
+// ============================================================================
+// NOTIFICATIONS
+// ============================================================================
+
+/// User notifications
+model Notification {
+  id          String    @id @default(cuid())
+  user_id     String
+  user        User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  
+  type        String    // new_subscriber, tip, message, media_unlock, etc.
+  title       String
+  content     String?
+  
+  // Reference
+  reference_type String?
+  reference_id   String?
+  
+  // Status
+  is_read     Boolean   @default(false)
+  read_at     DateTime?
+  
+  created_at  DateTime  @default(now())
+
+  @@index([user_id])
+  @@index([is_read])
+  @@index([created_at])
+}
+
+// ============================================================================
+// AUDIT & COMPLIANCE (2257)
+// ============================================================================
+
+/// Audit logs for all actions
+model AuditLog {
+  id            String    @id @default(cuid())
+  user_id       String?
+  user          User?     @relation(fields: [user_id], references: [id])
+  
+  // Action details
+  action        String    // login, logout, upload, approve, reject, etc.
+  resource_type String    // user, profile, media, transaction
+  resource_id   String?
+  
+  // Request info
+  ip_address    String?
+  user_agent    String?
+  
+  // Additional data
+  details       String?   // JSON
+  
+  created_at    DateTime  @default(now())
+
+  @@index([user_id])
+  @@index([action])
+  @@index([resource_type, resource_id])
+  @@index([created_at])
+}
+
+/// Age verification logs (2257 Compliance)
+model AgeVerificationLog {
+  id                  String    @id @default(cuid())
+  profile_id          String
+  profile             Profile   @relation(fields: [profile_id], references: [id], onDelete: Cascade)
+  
+  // Verification method
+  verification_method String    // id_document, credit_card, third_party
+  document_type       String?   // passport, driver_license, national_id
+  
+  // Verification details
+  document_number     String?   // Hashed/encrypted
+  document_country    String?
+  document_expiration DateTime?
+  
+  // Status
+  status              String    @default("pending") // pending, verified, rejected, expired
+  
+  // Document storage (encrypted)
+  document_storage_path String? // Encrypted path to stored document
+  
+  // Verification tracking
+  verification_date   DateTime?
+  expiration_date     DateTime? // When verification needs renewal
+  verified_by         String?   // Admin who verified
+  
+  // Timestamps
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
+
+  @@index([profile_id])
+  @@index([status])
+  @@index([expiration_date])
+}
+
+/// DMCA Takedown requests
+model DMCATakedown {
+  id              String    @id @default(cuid())
+  
+  // Complainant info
+  complainant_name String
+  complainant_email String
+  complainant_address String?
+  
+  // Content info
+  content_url     String
+  media_id        String?
+  
+  // Claim details
+  original_work_url String?
+  description     String
+  
+  // Status
+  status          String    @default("pending") // pending, under_review, removed, rejected
+  reviewed_by     String?
+  reviewed_at     DateTime?
+  
+  // Resolution
+  resolution      String?
+  removed_at      DateTime?
+  
+  // Timestamps
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+
+  @@index([status])
+  @@index([created_at])
+}
+
+// ============================================================================
+// SYSTEM SETTINGS
+// ============================================================================
+
+/// System configuration
+model SystemSetting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  
+  updated_at  DateTime @updatedAt
+  updated_by  String?
+}
+
+/// Banned countries (Geoblocking)
+model BannedCountry {
+  id          String   @id @default(cuid())
+  country_code String  @unique
+  reason      String?
+  banned_at   DateTime @default(now())
+}
+
+/// Rate limiting
+model RateLimit {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  count       Int      @default(1)
+  reset_at    DateTime
+  created_at  DateTime @default(now())
+}
+
+/// Featured content configuration
+model FeaturedContent {
+  id              String   @id @default(cuid())
+  type            String   // banner, spotlight, trending
+  title           String
+  description     String?
+  image_url       String?
+  link_url        String?
+  
+  is_active       Boolean  @default(true)
+  order           Int      @default(0)
+  
+  start_date      DateTime?
+  end_date        DateTime?
+  
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  @@index([type, is_active])
+}
