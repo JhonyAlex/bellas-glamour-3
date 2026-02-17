@@ -27,4 +27,5 @@ if (!process.env.NODE_ENV) {
 }
 
 // Start the Next.js server
-require('./.next/standalone/server.js');
+const serverPath = path.join(__dirname, '.next/standalone/server.js');
+require(serverPath);
