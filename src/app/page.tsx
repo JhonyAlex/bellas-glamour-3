@@ -24,7 +24,6 @@ import { getPlaceholderImage } from '@/lib/utils';
 import { ModelFilters as ModelFiltersType } from '@/types';
 import { useAppStore } from '@/lib/store';
 import { logout } from '@/app/actions/auth';
-import { getModels, getFeaturedModels } from '@/app/actions/models';
 
 // Map DB profile (snake_case) to component format (camelCase)
 function mapProfile(p: any) {
@@ -89,12 +88,19 @@ function BellasGlamourContent() {
   useEffect(() => {
     async function loadModels() {
       try {
-        const [allResult, featured] = await Promise.all([
-          getModels({ pageSize: 24 }),
-          getFeaturedModels(6),
+        const [allResponse, featuredResponse] = await Promise.all([
+          fetch('/api/models?pageSize=24'),
+          fetch('/api/models?pageSize=6&featured=true'),
         ]);
-        setModels(allResult.data.map(mapProfile));
-        setFeaturedModels(featured.map(mapProfile));
+        const allData = await allResponse.json();
+        const featuredData = await featuredResponse.json();
+
+        if (allData.success) {
+          setModels(allData.data.map(mapProfile));
+        }
+        if (featuredData.success) {
+          setFeaturedModels(featuredData.data.map(mapProfile));
+        }
       } catch (error) {
         console.error('Failed to load models:', error);
       } finally {
@@ -115,8 +121,21 @@ function BellasGlamourContent() {
     const timeout = setTimeout(async () => {
       setIsLoadingModels(true);
       try {
-        const result = await getModels({ filters, pageSize: 24 });
-        setModels(result.data.map(mapProfile));
+        const queryParams = new URLSearchParams({
+          pageSize: '24',
+          ...(filters.search && { search: filters.search }),
+          ...(filters.eyeColor && { eyeColor: filters.eyeColor }),
+          ...(filters.hairColor && { hairColor: filters.hairColor }),
+          ...(filters.ethnicity && { ethnicity: filters.ethnicity }),
+          ...(filters.minPrice !== undefined && { minPrice: filters.minPrice.toString() }),
+          ...(filters.maxPrice !== undefined && { maxPrice: filters.maxPrice.toString() }),
+          ...(filters.sortBy && { sortBy: filters.sortBy }),
+        });
+        const response = await fetch(`/api/models?${queryParams}`);
+        const result = await response.json();
+        if (result.success) {
+          setModels(result.data.map(mapProfile));
+        }
       } catch (error) {
         console.error('Failed to filter models:', error);
       } finally {
