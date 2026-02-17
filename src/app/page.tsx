@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles, TrendingUp, Users, Shield, Star, Crown, Loader2 } from 'lucide-react';
 
@@ -23,7 +23,7 @@ import t from '@/lib/i18n';
 import { getPlaceholderImage } from '@/lib/utils';
 import { ModelFilters as ModelFiltersType } from '@/types';
 import { useAppStore } from '@/lib/store';
-import { getCurrentUser, logout } from '@/app/actions/auth';
+import { logout } from '@/app/actions/auth';
 import { getModels, getFeaturedModels } from '@/app/actions/models';
 
 // Map DB profile (snake_case) to component format (camelCase)
@@ -70,7 +70,11 @@ function BellasGlamourContent() {
   useEffect(() => {
     async function loadUser() {
       try {
-        const user = await getCurrentUser();
+        const response = await fetch('/api/auth/user', {
+          method: 'GET',
+          credentials: 'include',
+        });
+        const { user } = await response.json();
         setCurrentUser(user);
       } catch {
         setCurrentUser(null);
@@ -79,7 +83,7 @@ function BellasGlamourContent() {
       }
     }
     loadUser();
-  }, []);
+  }, [setCurrentUser, setIsAuthLoading]);
 
   // Load models on mount
   useEffect(() => {
