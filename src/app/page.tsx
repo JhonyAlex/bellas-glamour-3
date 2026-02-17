@@ -84,22 +84,24 @@ function BellasGlamourContent() {
     loadUser();
   }, [setCurrentUser, setIsAuthLoading]);
 
-  // Load models on mount
+  // Load models on mount (sequential to avoid overloading Prisma on Spaceship)
   useEffect(() => {
     async function loadModels() {
       try {
-        const [allResponse, featuredResponse] = await Promise.all([
-          fetch('/api/models?pageSize=24'),
-          fetch('/api/models?pageSize=6&featured=true'),
-        ]);
-        const allData = await allResponse.json();
+        // Load featured first (cached, faster)
+        const featuredResponse = await fetch('/api/models?pageSize=6&featured=true');
         const featuredData = await featuredResponse.json();
+
+        if (featuredData.success) {
+          setFeaturedModels(featuredData.data.map(mapProfile));
+        }
+
+        // Then load all models
+        const allResponse = await fetch('/api/models?pageSize=24');
+        const allData = await allResponse.json();
 
         if (allData.success) {
           setModels(allData.data.map(mapProfile));
-        }
-        if (featuredData.success) {
-          setFeaturedModels(featuredData.data.map(mapProfile));
         }
       } catch (error) {
         console.error('Failed to load models:', error);
