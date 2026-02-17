@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/db';
 import { USER_ROLES, AGE_VERIFICATION_COOKIE_NAME } from '@/lib/constants';
-import { hash, compare } from 'crypto';
+import bcrypt from 'bcryptjs';
 import { SignJWT, jwtVerify } from 'jose';
 import { z } from 'zod';
 
@@ -27,17 +27,12 @@ const loginSchema = z.object({
 
 // Helper to hash password
 async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return bcrypt.hash(password, 12);
 }
 
 // Helper to verify password
 async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
-  const hashed = await hashPassword(password);
-  return hashed === hashedPassword;
+  return bcrypt.compare(password, hashedPassword);
 }
 
 // Generate JWT token

@@ -23,8 +23,8 @@ export async function getModels(options?: {
   // Apply search filter
   if (filters.search) {
     where.OR = [
-      { stage_name: { contains: filters.search, mode: 'insensitive' } },
-      { location: { contains: filters.search, mode: 'insensitive' } },
+      { stage_name: { contains: filters.search } },
+      { location: { contains: filters.search } },
     ];
   }
 

@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, User, LogIn, Crown, Settings, Shield } from 'lucide-react';
+import { Menu, X, User, LogIn, Crown, Settings, Shield, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { APP_NAME, NAV_LINKS } from '@/lib/constants';
 import { t } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
+import type { AuthUser } from '@/lib/store';
 
 const navLabelMap: Record<string, string> = {
   Home: t('nav.home'),
@@ -19,9 +20,11 @@ interface NavbarProps {
   onAuthClick: (mode: 'login' | 'register') => void;
   onModelDashboardClick: () => void;
   onAdminPanelClick: () => void;
+  currentUser: AuthUser | null;
+  onLogout: () => void;
 }
 
-export function Navbar({ onAuthClick, onModelDashboardClick, onAdminPanelClick }: NavbarProps) {
+export function Navbar({ onAuthClick, onModelDashboardClick, onAdminPanelClick, currentUser, onLogout }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -36,8 +39,8 @@ export function Navbar({ onAuthClick, onModelDashboardClick, onAdminPanelClick }
 
   const navVariants = {
     hidden: { opacity: 0, y: -20 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
       transition: { duration: 0.3 }
     }
@@ -45,8 +48,8 @@ export function Navbar({ onAuthClick, onModelDashboardClick, onAdminPanelClick }
 
   const menuVariants = {
     hidden: { opacity: 0, height: 0 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       height: 'auto',
       transition: { duration: 0.3 }
     }
@@ -59,8 +62,8 @@ export function Navbar({ onAuthClick, onModelDashboardClick, onAdminPanelClick }
       animate="visible"
       className={cn(
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-        isScrolled 
-          ? 'bg-[#0A0A0A]/95 backdrop-blur-md border-b border-[#333333]' 
+        isScrolled
+          ? 'bg-[#0A0A0A]/95 backdrop-blur-md border-b border-[#333333]'
           : 'bg-transparent'
       )}
     >
@@ -99,37 +102,64 @@ export function Navbar({ onAuthClick, onModelDashboardClick, onAdminPanelClick }
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Button
-              variant="ghost"
-              onClick={onModelDashboardClick}
-              className="text-[#A0A0A0] hover:text-[#D4AF37] hover:bg-transparent text-sm"
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              {t('navbar.creator')}
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={onAdminPanelClick}
-              className="text-[#A0A0A0] hover:text-[#8B0000] hover:bg-transparent text-sm"
-            >
-              <Shield className="w-4 h-4 mr-2" />
-              {t('navbar.admin')}
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={() => onAuthClick('login')}
-              className="text-[#F5F5F5] hover:text-[#D4AF37] hover:bg-transparent"
-            >
-              <LogIn className="w-4 h-4 mr-2" />
-              {t('navbar.sign_in')}
-            </Button>
-            <Button
-              onClick={() => onAuthClick('register')}
-              className="btn-premium btn-shine"
-            >
-              <User className="w-4 h-4 mr-2" />
-              {t('navbar.join_now')}
-            </Button>
+            {/* Creator dashboard - only for models */}
+            {currentUser?.role === 'model' && (
+              <Button
+                variant="ghost"
+                onClick={onModelDashboardClick}
+                className="text-[#A0A0A0] hover:text-[#D4AF37] hover:bg-transparent text-sm"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                {t('navbar.creator')}
+              </Button>
+            )}
+
+            {/* Admin panel - only for admins */}
+            {currentUser?.role === 'admin' && (
+              <Button
+                variant="ghost"
+                onClick={onAdminPanelClick}
+                className="text-[#A0A0A0] hover:text-[#8B0000] hover:bg-transparent text-sm"
+              >
+                <Shield className="w-4 h-4 mr-2" />
+                {t('navbar.admin')}
+              </Button>
+            )}
+
+            {/* Auth state */}
+            {currentUser ? (
+              <>
+                <span className="text-sm text-[#A0A0A0]">
+                  {currentUser.name || currentUser.email}
+                </span>
+                <Button
+                  variant="ghost"
+                  onClick={onLogout}
+                  className="text-[#F5F5F5] hover:text-[#D4AF37] hover:bg-transparent"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  {t('navbar.sign_out')}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="ghost"
+                  onClick={() => onAuthClick('login')}
+                  className="text-[#F5F5F5] hover:text-[#D4AF37] hover:bg-transparent"
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  {t('navbar.sign_in')}
+                </Button>
+                <Button
+                  onClick={() => onAuthClick('register')}
+                  className="btn-premium btn-shine"
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  {t('navbar.join_now')}
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -167,29 +197,73 @@ export function Navbar({ onAuthClick, onModelDashboardClick, onAdminPanelClick }
                   {navLabelMap[link.label] || link.label}
                 </a>
               ))}
-              
+
               <div className="pt-4 border-t border-[#333333] space-y-3">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    onAuthClick('login');
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="w-full border-[#333333] text-[#F5F5F5] hover:border-[#D4AF37]"
-                >
-                  <LogIn className="w-4 h-4 mr-2" />
-                  {t('navbar.sign_in')}
-                </Button>
-                <Button
-                  onClick={() => {
-                    onAuthClick('register');
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="w-full btn-premium btn-shine"
-                >
-                  <User className="w-4 h-4 mr-2" />
-                  {t('navbar.join_now')}
-                </Button>
+                {/* Role-specific buttons */}
+                {currentUser?.role === 'model' && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      onModelDashboardClick();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37]/10"
+                  >
+                    <Settings className="w-4 h-4 mr-2" />
+                    {t('navbar.creator')}
+                  </Button>
+                )}
+                {currentUser?.role === 'admin' && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      onAdminPanelClick();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full border-[#8B0000] text-[#8B0000] hover:bg-[#8B0000]/10"
+                  >
+                    <Shield className="w-4 h-4 mr-2" />
+                    {t('navbar.admin')}
+                  </Button>
+                )}
+
+                {currentUser ? (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      onLogout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full border-[#333333] text-[#F5F5F5] hover:border-[#D4AF37]"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    {t('navbar.sign_out')}
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        onAuthClick('login');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full border-[#333333] text-[#F5F5F5] hover:border-[#D4AF37]"
+                    >
+                      <LogIn className="w-4 h-4 mr-2" />
+                      {t('navbar.sign_in')}
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        onAuthClick('register');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full btn-premium btn-shine"
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      {t('navbar.join_now')}
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>

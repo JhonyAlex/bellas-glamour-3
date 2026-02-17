@@ -23,7 +23,8 @@
     "dont_have_account": "¿No tienes una cuenta?",
     "sign_up": "Regístrate",
     "already_have_account": "¿Ya tienes una cuenta?",
-    "sign_in_short": "Iniciar sesión"
+    "sign_in_short": "Iniciar sesión",
+    "register_as_creator": "Quiero registrarme como Creadora/Modelo"
   },
   "admin": {
     "title": "Panel de administración",
@@ -85,7 +86,8 @@
     "creator": "Creador",
     "admin": "Admin",
     "sign_in": "Iniciar sesión",
-    "join_now": "Únete ahora"
+    "join_now": "Únete ahora",
+    "sign_out": "Cerrar sesión"
   },
   "legal": {
     "terms": "Términos del servicio",

@@ -1,9 +1,24 @@
 import { create } from "zustand";
-import type { MOCK_MODELS } from "@/lib/constants";
-
-export type Model = (typeof MOCK_MODELS)[number];
 
 export type ViewType = "home" | "models" | "featured";
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  name: string | null;
+  role: string;
+  email_verified: boolean;
+  age_verified: boolean;
+  is_banned: boolean;
+  created_at: Date;
+  profile: {
+    id: string;
+    stage_name: string;
+    slug: string;
+    avatar_url: string | null;
+    status: string;
+  } | null;
+}
 
 interface AuthModalState {
   isOpen: boolean;
@@ -11,6 +26,12 @@ interface AuthModalState {
 }
 
 interface AppState {
+  // Auth
+  currentUser: AuthUser | null;
+  setCurrentUser: (user: AuthUser | null) => void;
+  isAuthLoading: boolean;
+  setIsAuthLoading: (loading: boolean) => void;
+
   // Navigation
   currentView: ViewType;
   setCurrentView: (view: ViewType) => void;
@@ -18,10 +39,6 @@ interface AppState {
   // Age Gate
   showAgeGate: boolean;
   setShowAgeGate: (show: boolean) => void;
-
-  // Model Profile Modal
-  selectedModel: Model | null;
-  setSelectedModel: (model: Model | null) => void;
 
   // Auth Modal
   authModal: AuthModalState;
@@ -46,6 +63,12 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set) => ({
+  // Auth
+  currentUser: null,
+  setCurrentUser: (user) => set({ currentUser: user }),
+  isAuthLoading: true,
+  setIsAuthLoading: (loading) => set({ isAuthLoading: loading }),
+
   // Navigation
   currentView: "home",
   setCurrentView: (view) => set({ currentView: view }),
@@ -53,10 +76,6 @@ export const useAppStore = create<AppState>((set) => ({
   // Age Gate
   showAgeGate: true,
   setShowAgeGate: (show) => set({ showAgeGate: show }),
-
-  // Model Profile Modal
-  selectedModel: null,
-  setSelectedModel: (model) => set({ selectedModel: model }),
 
   // Auth Modal
   authModal: { isOpen: false, mode: "login" },

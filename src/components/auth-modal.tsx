@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label';
 import { APP_NAME, MINIMUM_AGE } from '@/lib/constants';
 import { t } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
+import { login, register, getCurrentUser } from '@/app/actions/auth';
+import { useAppStore } from '@/lib/store';
 
 type AuthMode = 'login' | 'register';
 
@@ -30,8 +32,10 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
     name: '',
     acceptTerms: false,
     ageConfirmation: false,
+    registerAsCreator: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const setCurrentUser = useAppStore((s) => s.setCurrentUser);
 
   const toggleMode = () => {
     setMode(mode === 'login' ? 'register' : 'login');
@@ -74,16 +78,49 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     setIsLoading(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsLoading(false);
-    // In production, handle actual auth
+    setErrors({});
+
+    try {
+      const fd = new FormData();
+      fd.append('email', formData.email);
+      fd.append('password', formData.password);
+
+      let result;
+      if (mode === 'login') {
+        result = await login(fd);
+      } else {
+        fd.append('name', formData.name);
+        fd.append('role', formData.registerAsCreator ? 'model' : 'visitor');
+        result = await register(fd);
+      }
+
+      if (result.success) {
+        const user = await getCurrentUser();
+        if (user) {
+          setCurrentUser(user);
+        }
+        onClose();
+        setFormData({
+          email: '',
+          password: '',
+          confirmPassword: '',
+          name: '',
+          acceptTerms: false,
+          ageConfirmation: false,
+          registerAsCreator: false,
+        });
+      } else {
+        setErrors({ form: result.error || 'Error de autenticación' });
+      }
+    } catch {
+      setErrors({ form: 'Ocurrió un error inesperado' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const updateFormData = (field: string, value: string | boolean) => {
@@ -129,8 +166,8 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                     {mode === 'login' ? t('auth.welcome_back') : t('auth.join', { app: APP_NAME })}
                   </h2>
                   <p className="text-[#A0A0A0] text-sm mt-1">
-                    {mode === 'login' 
-                      ? t('auth.sign_in_info') 
+                    {mode === 'login'
+                      ? t('auth.sign_in_info')
                       : t('auth.register_info')}
                   </p>
                 </div>
@@ -141,8 +178,8 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                     onClick={() => setMode('login')}
                     className={cn(
                       'flex-1 py-2 rounded-md text-sm font-medium transition-colors',
-                      mode === 'login' 
-                        ? 'bg-[#D4AF37] text-[#0A0A0A]' 
+                      mode === 'login'
+                        ? 'bg-[#D4AF37] text-[#0A0A0A]'
                         : 'text-[#A0A0A0] hover:text-[#F5F5F5]'
                     )}
                   >
@@ -152,8 +189,8 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                     onClick={() => setMode('register')}
                     className={cn(
                       'flex-1 py-2 rounded-md text-sm font-medium transition-colors',
-                      mode === 'register' 
-                          ? 'bg-[#D4AF37] text-[#0A0A0A]' 
+                      mode === 'register'
+                          ? 'bg-[#D4AF37] text-[#0A0A0A]'
                           : 'text-[#A0A0A0] hover:text-[#F5F5F5]'
                     )}
                   >
@@ -164,6 +201,13 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
 
               {/* Form */}
               <form onSubmit={handleSubmit} className="p-6 pt-0 space-y-4">
+                {/* General form error */}
+                {errors.form && (
+                  <div className="p-3 bg-[#8B0000]/20 border border-[#8B0000]/50 rounded-lg">
+                    <p className="text-sm text-red-400">{errors.form}</p>
+                  </div>
+                )}
+
                 {mode === 'register' && (
                   <div className="space-y-1">
                     <Label htmlFor="name" className="text-[#A0A0A0]">{t('auth.name')}</Label>
@@ -240,6 +284,18 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
                     </div>
 
                     <div className="space-y-3 pt-2">
+                      <div className="flex items-start gap-2">
+                        <Checkbox
+                          id="registerAsCreator"
+                          checked={formData.registerAsCreator}
+                          onCheckedChange={checked => updateFormData('registerAsCreator', checked === true)}
+                          className="border-[#D4AF37] data-[state=checked]:bg-[#D4AF37] data-[state=checked]:border-[#D4AF37]"
+                        />
+                        <Label htmlFor="registerAsCreator" className="text-sm text-[#D4AF37]">
+                          {t('auth.register_as_creator') || 'Quiero registrarme como Creadora/Modelo'}
+                        </Label>
+                      </div>
+
                       <div className="flex items-start gap-2">
                         <Checkbox
                           id="ageConfirmation"

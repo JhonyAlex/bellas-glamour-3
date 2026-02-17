@@ -1,56 +1,112 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  X, TrendingUp, Users, DollarSign, Eye, Heart, 
-  Image as ImageIcon, Video, MessageCircle, Settings, Upload,
-  BarChart3, Calendar, Bell, Crown
+import {
+  X, Users, DollarSign, Eye, Heart,
+  Image as ImageIcon, Upload,
+  Crown, Loader2, CheckCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { t } from '@/lib/i18n';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
+import { useAppStore } from '@/lib/store';
+import { getModelStats } from '@/app/actions/models';
+import { createMedia, getProfileMedia } from '@/app/actions/media';
 
 interface ModelDashboardProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-// Mock data for dashboard
-const mockStats = {
-  totalSubscribers: 1250,
-  newSubscribers: 45,
-  totalEarnings: 15420.50,
-  monthlyEarnings: 3420.00,
-  pendingPayout: 1250.00,
-  totalViews: 245000,
-  viewsToday: 1234,
-  totalLikes: 89000,
-  likesToday: 234,
-  mediaCount: 87,
-  photosCount: 65,
-  videosCount: 22,
-};
-
-const mockRecentActivity = [
-  { type: 'subscription', user: 'john_d', amount: 14.99, time: '2 hours ago' },
-  { type: 'tip', user: 'mike_s', amount: 25.00, time: '3 hours ago' },
-  { type: 'subscription', user: 'alex_k', amount: 14.99, time: '5 hours ago' },
-  { type: 'ppv_unlock', user: 'chris_m', amount: 4.99, time: '6 hours ago' },
-  { type: 'tip', user: 'david_r', amount: 50.00, time: '8 hours ago' },
-];
-
-const mockEarningsData = [
-  { month: 'Jan', amount: 2800 },
-  { month: 'Feb', amount: 3200 },
-  { month: 'Mar', amount: 2950 },
-  { month: 'Apr', amount: 4100 },
-  { month: 'May', amount: 3800 },
-  { month: 'Jun', amount: 3420 },
-];
-
 export function ModelDashboard({ isOpen, onClose }: ModelDashboardProps) {
+  const currentUser = useAppStore((s) => s.currentUser);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [stats, setStats] = useState({
+    subscriberCount: 0,
+    mediaCount: 0,
+    totalViews: 0,
+    totalLikes: 0,
+    recentEarnings: 0,
+  });
+  const [mediaList, setMediaList] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+
+  // Guard
+  if (!currentUser || currentUser.role !== 'model' || !currentUser.profile) {
+    return null;
+  }
+
+  const profileId = currentUser.profile.id;
+
+  useEffect(() => {
+    if (!isOpen) return;
+    loadData();
+  }, [isOpen]);
+
+  async function loadData() {
+    setIsLoading(true);
+    try {
+      const [s, media] = await Promise.all([
+        getModelStats(profileId),
+        getProfileMedia(profileId, { limit: 12 }),
+      ]);
+      setStats(s);
+      setMediaList(media);
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setUploadSuccess(false);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        alert(err.error || 'Error al subir el archivo');
+        return;
+      }
+
+      const data = await response.json();
+
+      await createMedia({
+        profileId,
+        type: data.type as 'photo' | 'video',
+        url: data.url,
+        title: file.name.replace(/\.[^.]+$/, ''),
+      });
+
+      setUploadSuccess(true);
+      setTimeout(() => setUploadSuccess(false), 3000);
+      await loadData();
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('Error al subir el archivo');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -78,7 +134,7 @@ export function ModelDashboard({ isOpen, onClose }: ModelDashboardProps) {
                   </div>
                   <div>
                     <h1 className="text-xl font-semibold text-[#F5F5F5]">{t('dashboard.title')}</h1>
-                    <p className="text-sm text-[#A0A0A0]">{t('dashboard.subtitle')}</p>
+                    <p className="text-sm text-[#A0A0A0]">{currentUser.profile?.stage_name}</p>
                   </div>
                 </div>
                 <button
@@ -88,197 +144,119 @@ export function ModelDashboard({ isOpen, onClose }: ModelDashboardProps) {
                   <X className="w-6 h-6" />
                 </button>
               </div>
-
-              {/* Navigation Tabs */}
-              <div className="flex gap-1 px-6 pb-2">
-                {t('dashboard.tabs').map((tab, i) => (
-                  <button
-                    key={tab}
-                    className={`px-4 py-2 text-sm rounded-lg transition-colors ${
-                      i === 0 
-                        ? 'bg-[#D4AF37] text-[#0A0A0A]' 
-                        : 'text-[#A0A0A0] hover:bg-[#1A1A1A]'
-                    }`}
-                  >
-                    {tab}
-                  </button>
-                ))}
-              </div>
             </div>
 
-            {/* Content */}
-            <div className="p-6 space-y-6">
-              {/* Quick Actions */}
-              <div className="flex flex-wrap gap-3">
-                <Button className="btn-premium btn-shine">
-                  <Upload className="w-4 h-4 mr-2" />
-                  {t('dashboard.upload_content')}
-                </Button>
-                <Button variant="outline" className="border-[#333333] text-[#A0A0A0]">
-                  <MessageCircle className="w-4 h-4 mr-2" />
-                  {t('dashboard.messages')} (12)
-                </Button>
-                <Button variant="outline" className="border-[#333333] text-[#A0A0A0]">
-                  <Bell className="w-4 h-4 mr-2" />
-                  {t('dashboard.notifications')}
-                </Button>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-20">
+                <Loader2 className="w-8 h-8 animate-spin text-[#D4AF37]" />
               </div>
+            ) : (
+              <div className="p-6 space-y-6">
+                {/* Profile status banner */}
+                {currentUser.profile?.status === 'pending' && (
+                  <div className="p-4 bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded-lg">
+                    <p className="text-sm text-[#D4AF37]">
+                      Tu perfil está pendiente de aprobación. Un administrador lo revisará pronto.
+                    </p>
+                  </div>
+                )}
 
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <StatCard
-                  icon={<Users className="w-5 h-5" />}
-                  label={t('dashboard.subscribers')}
-                  value={mockStats.totalSubscribers.toLocaleString()}
-                  change={`+${mockStats.newSubscribers} this month`}
-                  positive
-                />
-                <StatCard
-                  icon={<DollarSign className="w-5 h-5" />}
-                  label={t('dashboard.total_earnings')}
-                  value={formatCurrency(mockStats.totalEarnings)}
-                  change={formatCurrency(mockStats.monthlyEarnings) + ' this month'}
-                  positive
-                />
-                <StatCard
-                  icon={<Eye className="w-5 h-5" />}
-                  label={t('dashboard.total_views')}
-                  value={mockStats.totalViews.toLocaleString()}
-                  change={`+${mockStats.viewsToday.toLocaleString()} today`}
-                  positive
-                />
-                <StatCard
-                  icon={<Heart className="w-5 h-5" />}
-                  label={t('dashboard.total_likes')}
-                  value={mockStats.totalLikes.toLocaleString()}
-                  change={`+${mockStats.likesToday} today`}
-                  positive
-                />
-              </div>
+                {/* Quick Actions */}
+                <div className="flex flex-wrap gap-3">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,video/mp4,video/webm"
+                    className="hidden"
+                    onChange={handleUpload}
+                  />
+                  <Button
+                    className="btn-premium btn-shine"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading || currentUser.profile?.status !== 'approved'}
+                  >
+                    {isUploading ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : uploadSuccess ? (
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                    ) : (
+                      <Upload className="w-4 h-4 mr-2" />
+                    )}
+                    {isUploading ? 'Subiendo...' : uploadSuccess ? 'Subido' : t('dashboard.upload_content')}
+                  </Button>
+                </div>
 
-              {/* Charts and Activity */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Earnings Chart */}
-                <Card className="lg:col-span-2 bg-[#1A1A1A] border-[#333333]">
-                  <CardHeader>
-                    <CardTitle className="text-[#F5F5F5] flex items-center gap-2">
-                      <BarChart3 className="w-5 h-5 text-[#D4AF37]" />
-                      {t('dashboard.earnings_overview')}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-48 flex items-end justify-between gap-2">
-                      {mockEarningsData.map((item, i) => (
-                        <div key={item.month} className="flex-1 flex flex-col items-center gap-2">
-                          <div
-                            className="w-full bg-gradient-to-t from-[#D4AF37] to-[#F5D76E] rounded-t"
-                            style={{ 
-                              height: `${(item.amount / 5000) * 100}%`,
-                              animationDelay: `${i * 0.1}s`
-                            }}
-                          />
-                          <span className="text-xs text-[#A0A0A0]">{item.month}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <StatCard
+                    icon={<Users className="w-5 h-5" />}
+                    label={t('dashboard.subscribers')}
+                    value={stats.subscriberCount.toLocaleString()}
+                    change="suscriptores activos"
+                    positive
+                  />
+                  <StatCard
+                    icon={<DollarSign className="w-5 h-5" />}
+                    label={t('dashboard.total_earnings')}
+                    value={formatCurrency(stats.recentEarnings)}
+                    change="últimos 30 días"
+                    positive
+                  />
+                  <StatCard
+                    icon={<Eye className="w-5 h-5" />}
+                    label={t('dashboard.total_views')}
+                    value={stats.totalViews.toLocaleString()}
+                    change="vistas totales"
+                    positive
+                  />
+                  <StatCard
+                    icon={<Heart className="w-5 h-5" />}
+                    label={t('dashboard.total_likes')}
+                    value={stats.totalLikes.toLocaleString()}
+                    change="me gusta totales"
+                    positive
+                  />
+                </div>
 
-                {/* Recent Activity */}
+                {/* Content Overview */}
                 <Card className="bg-[#1A1A1A] border-[#333333]">
                   <CardHeader>
-                    <CardTitle className="text-[#F5F5F5] flex items-center gap-2">
-                      <TrendingUp className="w-5 h-5 text-[#D4AF37]" />
-                      {t('dashboard.recent_activity')}
+                    <CardTitle className="text-[#F5F5F5] flex items-center justify-between">
+                      <span className="flex items-center gap-2">
+                        <ImageIcon className="w-5 h-5 text-[#D4AF37]" />
+                        {t('dashboard.content_overview')}
+                      </span>
+                      <span className="text-sm font-normal text-[#A0A0A0]">
+                        {stats.mediaCount} archivos
+                      </span>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
-                      {mockRecentActivity.map((activity, i) => (
-                        <div
-                          key={i}
-                          className="flex items-center justify-between py-2 border-b border-[#333333] last:border-0"
-                        >
-                          <div>
-                            <p className="text-sm text-[#F5F5F5]">@{activity.user}</p>
-                            <p className="text-xs text-[#A0A0A0]">
-                              {activity.type === 'subscription' && 'New subscription'}
-                              {activity.type === 'tip' && 'Sent a tip'}
-                              {activity.type === 'ppv_unlock' && 'Unlocked content'}
-                            </p>
+                    {mediaList.length === 0 ? (
+                      <div className="text-center py-8">
+                        <ImageIcon className="w-12 h-12 text-[#333333] mx-auto mb-3" />
+                        <p className="text-[#A0A0A0]">Aún no has subido contenido</p>
+                        <p className="text-sm text-[#666666]">Sube tu primera foto o video para comenzar</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
+                        {mediaList.map((media) => (
+                          <div key={media.id} className="aspect-square rounded-lg overflow-hidden bg-[#2A2A2A]">
+                            {media.url ? (
+                              <img src={media.url} alt={media.title || ''} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <ImageIcon className="w-6 h-6 text-[#666666]" />
+                              </div>
+                            )}
                           </div>
-                          <div className="text-right">
-                            <p className="text-sm font-medium text-[#D4AF37]">
-                              +{formatCurrency(activity.amount)}
-                            </p>
-                            <p className="text-xs text-[#A0A0A0]">{activity.time}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>
-
-              {/* Content Overview */}
-              <Card className="bg-[#1A1A1A] border-[#333333]">
-                <CardHeader>
-                  <CardTitle className="text-[#F5F5F5] flex items-center justify-between">
-                    <span className="flex items-center gap-2">
-                      <ImageIcon className="w-5 h-5 text-[#D4AF37]" />
-                      {t('dashboard.content_overview')}
-                    </span>
-                    <Button variant="outline" size="sm" className="border-[#333333] text-[#A0A0A0]">
-                      {t('dashboard.view_all')}
-                    </Button>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="p-4 bg-[#0A0A0A] rounded-lg text-center">
-                      <ImageIcon className="w-6 h-6 mx-auto mb-2 text-[#D4AF37]" />
-                      <p className="text-2xl font-bold text-[#F5F5F5]">{mockStats.photosCount}</p>
-                      <p className="text-xs text-[#A0A0A0]">{t('model.photos')}</p>
-                    </div>
-                    <div className="p-4 bg-[#0A0A0A] rounded-lg text-center">
-                      <Video className="w-6 h-6 mx-auto mb-2 text-[#D4AF37]" />
-                      <p className="text-2xl font-bold text-[#F5F5F5]">{mockStats.videosCount}</p>
-                      <p className="text-xs text-[#A0A0A0]">{t('model.videos')}</p>
-                    </div>
-                    <div className="p-4 bg-[#0A0A0A] rounded-lg text-center">
-                      <Eye className="w-6 h-6 mx-auto mb-2 text-[#D4AF37]" />
-                      <p className="text-2xl font-bold text-[#F5F5F5]">3</p>
-                      <p className="text-xs text-[#A0A0A0]">{t('model.pending_review')}</p>
-                    </div>
-                    <div className="p-4 bg-[#0A0A0A] rounded-lg text-center">
-                      <Calendar className="w-6 h-6 mx-auto mb-2 text-[#D4AF37]" />
-                      <p className="text-2xl font-bold text-[#F5F5F5]">5</p>
-                      <p className="text-xs text-[#A0A0A0]">{t('model.scheduled')}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Payout Section */}
-              <Card className="bg-gradient-to-r from-[#1A1A1A] to-[#2A2A2A] border-[#D4AF37]/20">
-                <CardContent className="p-6">
-                  <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div>
-                      <h3 className="text-lg font-medium text-[#F5F5F5] mb-1">{t('dashboard.pending_payout')}</h3>
-                      <p className="text-3xl font-bold text-[#D4AF37]">
-                        {formatCurrency(mockStats.pendingPayout)}
-                      </p>
-                      <p className="text-sm text-[#A0A0A0] mt-1">
-                        {t('dashboard.next_payout', { date: 'July 1, 2025' })}
-                      </p>
-                    </div>
-                    <Button className="btn-premium btn-shine">
-                      {t('dashboard.request_payout')}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            )}
           </motion.div>
         </motion.div>
       )}
@@ -286,14 +264,13 @@ export function ModelDashboard({ isOpen, onClose }: ModelDashboardProps) {
   );
 }
 
-// Stat Card Component
-function StatCard({ 
-  icon, 
-  label, 
-  value, 
-  change, 
-  positive 
-}: { 
+function StatCard({
+  icon,
+  label,
+  value,
+  change,
+  positive
+}: {
   icon: React.ReactNode;
   label: string;
   value: string;
