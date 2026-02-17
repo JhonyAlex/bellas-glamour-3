@@ -17,25 +17,6 @@ export async function getModels(options?: {
     pageSize = PAGINATION.DEFAULT_PAGE_SIZE,
   } = options || {};
 
-  // Check if we have any filters
-  const hasFilters = filters.search || filters.eyeColor || filters.hairColor ||
-    filters.ethnicity || filters.minPrice || filters.maxPrice ||
-    filters.sortBy || filters.isFeatured;
-
-  // For first page without filters, use cache
-  const cacheKey = hasFilters ? null : `models_page_${page}_pageSize_${pageSize}`;
-
-  if (cacheKey) {
-    try {
-      const cached = await cacheOrFetch(cacheKey, queryModels, 300);
-      return cached;
-    } catch {
-      // Fall through to direct query if cache fails
-    }
-  }
-
-  return queryModels();
-
   async function queryModels() {
     const where: any = {
       status: 'approved',
@@ -122,6 +103,8 @@ export async function getModels(options?: {
       hasMore: page * pageSize < total,
     };
   }
+
+  return queryModels();
 }
 
 // Get featured models
