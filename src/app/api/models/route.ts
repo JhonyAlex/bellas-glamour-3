@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { PAGINATION } from '@/lib/constants';
+import { getCached, setCached, getCacheKey } from '@/lib/db-cache';
 
 // GET /api/models - Get all models
 export async function GET(request: NextRequest) {
@@ -58,27 +59,35 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: true, data: model });
     }
 
-    // Get featured models
+    // Get featured models (with caching)
     if (featured) {
-      const models = await prisma.profile.findMany({
-        where: {
-          status: 'approved',
-          is_featured: true,
-        },
-        orderBy: [
-          { featured_order: 'asc' as const },
-          { subscribers_count: 'desc' as const },
-        ],
-        take: pageSize,
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
+      const cacheKey = getCacheKey('featured', pageSize);
+      let models = getCached(cacheKey);
+
+      if (!models) {
+        models = await prisma.profile.findMany({
+          where: {
+            status: 'approved',
+            is_featured: true,
+          },
+          orderBy: [
+            { featured_order: 'asc' as const },
+            { subscribers_count: 'desc' as const },
+          ],
+          take: pageSize,
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+              },
             },
           },
-        },
-      });
+        });
+
+        // Cache for 5 minutes
+        setCached(cacheKey, models, 5 * 60 * 1000);
+      }
 
       return NextResponse.json({ success: true, data: models });
     }
@@ -122,6 +131,24 @@ export async function GET(request: NextRequest) {
         break;
     }
 
+    // Cache key for filtered queries (only cache page 1 without filters to reduce memory)
+    const shouldCache = page === 1 && !search && !eyeColor && !hairColor && !ethnicity && minPrice === undefined && maxPrice === undefined;
+    const cacheKey = shouldCache ? getCacheKey('models', pageSize, sortBy || 'latest') : null;
+
+    let cachedResult = cacheKey ? getCached<any>(cacheKey) : null;
+
+    if (cachedResult) {
+      return NextResponse.json({
+        success: true,
+        data: cachedResult.profiles,
+        total: cachedResult.total,
+        page,
+        pageSize,
+        totalPages: Math.ceil(cachedResult.total / pageSize),
+        hasMore: page * pageSize < cachedResult.total,
+      });
+    }
+
     // Get total count
     const total = await prisma.profile.count({ where });
 
@@ -141,6 +168,11 @@ export async function GET(request: NextRequest) {
         },
       },
     });
+
+    // Cache first page of unfiltered results for 2 minutes
+    if (cacheKey) {
+      setCached(cacheKey, { profiles, total }, 2 * 60 * 1000);
+    }
 
     return NextResponse.json({
       success: true,
