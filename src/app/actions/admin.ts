@@ -15,14 +15,12 @@ async function requireAdmin() {
 export async function getAdminStats() {
   await requireAdmin();
 
-  const [totalUsers, totalModels, pendingModels, pendingMedia, flaggedMedia] =
-    await Promise.all([
-      prisma.user.count(),
-      prisma.profile.count({ where: { status: 'approved' } }),
-      prisma.profile.count({ where: { status: 'pending' } }),
-      prisma.media.count({ where: { moderation_status: 'pending' } }),
-      prisma.media.count({ where: { moderation_status: 'flagged' } }),
-    ]);
+  // Load sequentially to avoid EAGAIN process limit errors on Spaceship
+  const totalUsers = await prisma.user.count();
+  const totalModels = await prisma.profile.count({ where: { status: 'approved' } });
+  const pendingModels = await prisma.profile.count({ where: { status: 'pending' } });
+  const pendingMedia = await prisma.media.count({ where: { moderation_status: 'pending' } });
+  const flaggedMedia = await prisma.media.count({ where: { moderation_status: 'flagged' } });
 
   return { totalUsers, totalModels, pendingModels, pendingMedia, flaggedMedia };
 }
@@ -93,24 +91,23 @@ export async function rejectModel(profileId: string, reason?: string) {
 export async function getUsers(page: number = 1, pageSize: number = 20) {
   await requireAdmin();
 
-  const [users, total] = await Promise.all([
-    prisma.user.findMany({
-      orderBy: { created_at: 'desc' },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        is_banned: true,
-        created_at: true,
-        last_login: true,
-        profile: { select: { stage_name: true, status: true } },
-      },
-    }),
-    prisma.user.count(),
-  ]);
+  // Load sequentially to avoid EAGAIN process limit errors on Spaceship
+  const users = await prisma.user.findMany({
+    orderBy: { created_at: 'desc' },
+    skip: (page - 1) * pageSize,
+    take: pageSize,
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      is_banned: true,
+      created_at: true,
+      last_login: true,
+      profile: { select: { stage_name: true, status: true } },
+    },
+  });
+  const total = await prisma.user.count();
 
   return { users, total, page, pageSize };
 }

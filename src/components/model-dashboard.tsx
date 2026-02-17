@@ -51,10 +51,9 @@ export function ModelDashboard({ isOpen, onClose }: ModelDashboardProps) {
   async function loadData() {
     setIsLoading(true);
     try {
-      const [s, media] = await Promise.all([
-        getModelStats(profileId),
-        getProfileMedia(profileId, { limit: 12 }),
-      ]);
+      // Load sequentially to avoid EAGAIN process limit errors on Spaceship
+      const s = await getModelStats(profileId);
+      const media = await getProfileMedia(profileId, { limit: 12 });
       setStats(s);
       setMediaList(media);
     } catch (error) {

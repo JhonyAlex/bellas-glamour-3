@@ -257,38 +257,31 @@ export async function upsertProfile(data: {
 
 // Get model stats for dashboard
 export async function getModelStats(profileId: string) {
-  const [
-    subscriberCount,
-    mediaCount,
-    totalViews,
-    totalLikes,
-    recentEarnings,
-  ] = await Promise.all([
-    prisma.subscription.count({
-      where: { profile_id: profileId, status: 'active' },
-    }),
-    prisma.media.count({
-      where: { profile_id: profileId, is_archived: false },
-    }),
-    prisma.media.aggregate({
-      where: { profile_id: profileId },
-      _sum: { views_count: true },
-    }),
-    prisma.media.aggregate({
-      where: { profile_id: profileId },
-      _sum: { likes_count: true },
-    }),
-    prisma.transaction.aggregate({
-      where: {
-        profile_id: profileId,
-        status: 'completed',
-        created_at: {
-          gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
-        },
+  // Load sequentially to avoid EAGAIN process limit errors on Spaceship
+  const subscriberCount = await prisma.subscription.count({
+    where: { profile_id: profileId, status: 'active' },
+  });
+  const mediaCount = await prisma.media.count({
+    where: { profile_id: profileId, is_archived: false },
+  });
+  const totalViews = await prisma.media.aggregate({
+    where: { profile_id: profileId },
+    _sum: { views_count: true },
+  });
+  const totalLikes = await prisma.media.aggregate({
+    where: { profile_id: profileId },
+    _sum: { likes_count: true },
+  });
+  const recentEarnings = await prisma.transaction.aggregate({
+    where: {
+      profile_id: profileId,
+      status: 'completed',
+      created_at: {
+        gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
       },
-      _sum: { creator_amount: true },
-    }),
-  ]);
+    },
+    _sum: { creator_amount: true },
+  });
 
   return {
     subscriberCount,

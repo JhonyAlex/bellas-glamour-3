@@ -44,13 +44,13 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   async function loadData() {
     setIsLoading(true);
     try {
-      const [s, models, media, users, logs] = await Promise.all([
-        getAdminStats(),
-        getPendingModels(),
-        getPendingMedia(),
-        getUsers(),
-        getRecentAuditLogs(),
-      ]);
+      // Load sequentially to avoid EAGAIN process limit errors on Spaceship
+      const s = await getAdminStats();
+      const models = await getPendingModels();
+      const media = await getPendingMedia();
+      const users = await getUsers();
+      const logs = await getRecentAuditLogs();
+
       setStats(s);
       setPendingModelsList(models);
       setPendingMediaList(media.data);
