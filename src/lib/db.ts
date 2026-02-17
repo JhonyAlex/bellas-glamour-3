@@ -10,7 +10,8 @@ export const prisma =
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   });
 
-if (process.env.NODE_ENV !== 'production') {
+// Always cache in development; in production, rely on connection pooling
+if (process.env.NODE_ENV === 'development') {
   globalForPrisma.prisma = prisma;
 }
 
