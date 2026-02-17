@@ -35,11 +35,6 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [usersSearch, setUsersSearch] = useState('');
 
-  // Permission gate
-  if (currentUser?.role !== 'admin') {
-    return null;
-  }
-
   // Load data when panel opens
   useEffect(() => {
     if (!isOpen) return;
@@ -86,6 +81,11 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
     setPendingMediaList(prev => prev.filter(m => m.id !== mediaId));
     if (stats) setStats({ ...stats, pendingMedia: stats.pendingMedia - 1 });
   };
+
+  // Permission gate - after all hooks
+  if (currentUser?.role !== 'admin') {
+    return null;
+  }
 
   return (
     <AnimatePresence>
