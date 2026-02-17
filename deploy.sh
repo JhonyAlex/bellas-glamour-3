@@ -42,13 +42,14 @@ echo -e "${GREEN}✓ Build successful${NC}\n"
 
 # Step 3: Create tarball
 echo -e "${YELLOW}[3/5] Creating tarball (this may take a minute)...${NC}"
-tar czf /tmp/next-build.tar.gz .next/standalone .next/static public app.js 2>&1 | grep -v "^tar:" || true
+tar czf /tmp/next-build.tar.gz .next/standalone .next/static public 2>&1 | grep -v "^tar:" || true
 TARBALL_SIZE=$(du -sh /tmp/next-build.tar.gz | cut -f1)
 echo -e "${GREEN}✓ Tarball created (${TARBALL_SIZE})${NC}\n"
 
 # Step 4: Upload to server
 echo -e "${YELLOW}[4/5] Uploading to server via SCP...${NC}"
 scp -P "$SSH_PORT" -i "$SSH_KEY" /tmp/next-build.tar.gz "$SSH_USER@$SSH_HOST:$APP_PATH/" 2>&1 | grep -v "^Warning" || true
+scp -P "$SSH_PORT" -i "$SSH_KEY" app.js "$SSH_USER@$SSH_HOST:$APP_PATH/" 2>&1 | grep -v "^Warning" || true
 echo -e "${GREEN}✓ Upload complete${NC}\n"
 
 # Step 5: Extract and restart on server
@@ -56,7 +57,7 @@ echo -e "${YELLOW}[5/5] Extracting and restarting on server...${NC}"
 ssh -p "$SSH_PORT" -i "$SSH_KEY" "$SSH_USER@$SSH_HOST" << 'EOF'
 cd /home/otfidqlcuq/bellasglamour.com/bellas-glamour-3
 chmod -R u+rwx .next public 2>/dev/null
-rm -rf .next public
+rm -rf .next public app.js 2>/dev/null
 tar xzf next-build.tar.gz --no-same-permissions --no-same-owner
 rm next-build.tar.gz
 cp .env.production .next/standalone/
