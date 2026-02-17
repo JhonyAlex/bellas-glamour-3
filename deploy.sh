@@ -42,7 +42,7 @@ echo -e "${GREEN}✓ Build successful${NC}\n"
 
 # Step 3: Create tarball
 echo -e "${YELLOW}[3/5] Creating tarball (this may take a minute)...${NC}"
-tar czf /tmp/next-build.tar.gz .next/standalone .next/static public 2>&1 | grep -v "^tar:" || true
+tar czf /tmp/next-build.tar.gz .next/standalone .next/static public app.js 2>&1 | grep -v "^tar:" || true
 TARBALL_SIZE=$(du -sh /tmp/next-build.tar.gz | cut -f1)
 echo -e "${GREEN}✓ Tarball created (${TARBALL_SIZE})${NC}\n"
 
