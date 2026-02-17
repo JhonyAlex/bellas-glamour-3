@@ -1,6 +1,7 @@
 'use server';
 
 import { prisma } from '@/lib/db';
+import { cacheOrFetch, clearCache } from '@/lib/cache';
 import { Profile, ProfileWithStats, ModelFilters } from '@/types';
 import { PAGINATION } from '@/lib/constants';
 
@@ -16,115 +17,140 @@ export async function getModels(options?: {
     pageSize = PAGINATION.DEFAULT_PAGE_SIZE,
   } = options || {};
 
-  const where: any = {
-    status: 'approved',
-  };
+  // Check if we have any filters
+  const hasFilters = filters.search || filters.eyeColor || filters.hairColor ||
+    filters.ethnicity || filters.minPrice || filters.maxPrice ||
+    filters.sortBy || filters.isFeatured;
 
-  // Apply search filter
-  if (filters.search) {
-    where.OR = [
-      { stage_name: { contains: filters.search } },
-      { location: { contains: filters.search } },
-    ];
-  }
+  // For first page without filters, use cache
+  const cacheKey = hasFilters ? null : `models_page_${page}_pageSize_${pageSize}`;
 
-  // Apply attribute filters
-  if (filters.eyeColor) {
-    where.eye_color = filters.eyeColor;
-  }
-  if (filters.hairColor) {
-    where.hair_color = filters.hairColor;
-  }
-  if (filters.ethnicity) {
-    where.ethnicity = filters.ethnicity;
-  }
-
-  // Apply price filters
-  if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
-    where.subscription_price = {};
-    if (filters.minPrice !== undefined) {
-      where.subscription_price.gte = filters.minPrice;
-    }
-    if (filters.maxPrice !== undefined) {
-      where.subscription_price.lte = filters.maxPrice;
+  if (cacheKey) {
+    try {
+      const cached = await cacheOrFetch(cacheKey, queryModels, 300);
+      return cached;
+    } catch {
+      // Fall through to direct query if cache fails
     }
   }
 
-  // Apply featured filter
-  if (filters.isFeatured) {
-    where.is_featured = true;
-  }
+  return queryModels();
 
-  // Determine sort order
-  let orderBy: any = { created_at: 'desc' };
-  switch (filters.sortBy) {
-    case 'popular':
-      orderBy = { subscribers_count: 'desc' };
-      break;
-    case 'price_low':
-      orderBy = { subscription_price: 'asc' };
-      break;
-    case 'price_high':
-      orderBy = { subscription_price: 'desc' };
-      break;
-    case 'name':
-      orderBy = { stage_name: 'asc' };
-      break;
-  }
+  async function queryModels() {
+    const where: any = {
+      status: 'approved',
+    };
 
-  // Get total count
-  const total = await prisma.profile.count({ where });
+    // Apply search filter
+    if (filters.search) {
+      where.OR = [
+        { stage_name: { contains: filters.search, mode: 'insensitive' } },
+        { location: { contains: filters.search, mode: 'insensitive' } },
+      ];
+    }
 
-  // Get profiles
-  const profiles = await prisma.profile.findMany({
-    where,
-    orderBy,
-    skip: (page - 1) * pageSize,
-    take: pageSize,
-    include: {
-      user: {
-        select: {
-          id: true,
-          email: true,
-          name: true,
+    // Apply attribute filters
+    if (filters.eyeColor) {
+      where.eye_color = filters.eyeColor;
+    }
+    if (filters.hairColor) {
+      where.hair_color = filters.hairColor;
+    }
+    if (filters.ethnicity) {
+      where.ethnicity = filters.ethnicity;
+    }
+
+    // Apply price filters
+    if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
+      where.subscription_price = {};
+      if (filters.minPrice !== undefined) {
+        where.subscription_price.gte = filters.minPrice;
+      }
+      if (filters.maxPrice !== undefined) {
+        where.subscription_price.lte = filters.maxPrice;
+      }
+    }
+
+    // Apply featured filter
+    if (filters.isFeatured) {
+      where.is_featured = true;
+    }
+
+    // Determine sort order
+    let orderBy: any = { created_at: 'desc' };
+    switch (filters.sortBy) {
+      case 'popular':
+        orderBy = { subscribers_count: 'desc' };
+        break;
+      case 'price_low':
+        orderBy = { subscription_price: 'asc' };
+        break;
+      case 'price_high':
+        orderBy = { subscription_price: 'desc' };
+        break;
+      case 'name':
+        orderBy = { stage_name: 'asc' };
+        break;
+    }
+
+    // Get total count
+    const total = await prisma.profile.count({ where });
+
+    // Get profiles
+    const profiles = await prisma.profile.findMany({
+      where,
+      orderBy,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  return {
-    data: profiles,
-    total,
-    page,
-    pageSize,
-    totalPages: Math.ceil(total / pageSize),
-    hasMore: page * pageSize < total,
-  };
+    return {
+      data: profiles,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+      hasMore: page * pageSize < total,
+    };
+  }
 }
 
 // Get featured models
 export async function getFeaturedModels(limit: number = 6) {
-  const profiles = await prisma.profile.findMany({
-    where: {
-      status: 'approved',
-      is_featured: true,
-    },
-    orderBy: [
-      { featured_order: 'asc' },
-      { subscribers_count: 'desc' },
-    ],
-    take: limit,
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
+  return cacheOrFetch(
+    `featured_models_${limit}`,
+    async () => {
+      return await prisma.profile.findMany({
+        where: {
+          status: 'approved',
+          is_featured: true,
         },
-      },
+        orderBy: [
+          { featured_order: 'asc' },
+          { subscribers_count: 'desc' },
+        ],
+        take: limit,
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      });
     },
-  });
-
-  return profiles;
+    600 // Cache for 10 minutes
+  );
 }
 
 // Get model by slug
